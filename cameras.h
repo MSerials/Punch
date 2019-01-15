@@ -118,7 +118,13 @@ enum{
         int width = 0, height = 0, ch = 3;
         uchar *data = nullptr;
         Snap(width, height, &data, ch, 0, 0, Delay);
-        if (nullptr == data) return VoidImage();
+        if (nullptr == data)
+        {
+            static cv::Mat VoidImage_Ex;
+            cv::Mat Rot_Mat = cv::getRotationMatrix2D(cv::Point2f(VoidImage().cols / 2.0, VoidImage().rows / 2.0), cam_angle, 1.0);
+            cv::warpAffine(VoidImage(), VoidImage_Ex, Rot_Mat, VoidImage().size());
+            return VoidImage_Ex;
+        }
         //这个重新赋值w和h的目的是实时矫正
         if (width != Camera_Snap_Origin.cols || height != Camera_Snap_Origin.rows)
         {
@@ -161,8 +167,8 @@ enum{
 #endif
             rview = Camera_Image.clone();
         }
-        int len = rview.cols>rview.rows?rview.cols:rview.rows;
-        cv::Mat Rot_Mat = cv::getRotationMatrix2D(cv::Point2f(len / 2.0, len / 2.0), cam_angle, 1.0);
+       // int len = rview.cols>rview.rows?rview.cols:rview.rows;
+        cv::Mat Rot_Mat = cv::getRotationMatrix2D(cv::Point2f(rview.cols / 2.0, rview.rows / 2.0), cam_angle, 1.0);
         cv::warpAffine(rview, Camera_Snap, Rot_Mat, rview.size());
         static cv::Mat Gray;
         CvtColor(Camera_Snap, Gray, CV_BGR2GRAY);

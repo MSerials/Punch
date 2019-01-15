@@ -12,6 +12,7 @@
 #include <QProcess>
 #include <omp.h>
 #include <QDir>
+#include <unordered_map>
 
 
 #ifndef GLOBAL_H
@@ -58,7 +59,15 @@ public:
 
 class _global{
 public:
-    _global(){ printf("global\n");}
+    _global(){
+        LineMethod()[LINES_HORIZONTAL_AI] = "智能横向排列";
+        LineMethod()[LINES_HORIZONTAL] = "横向排列";
+        LineMethod()[LINES_VERTICAL_AI] = "智能纵向排列";
+        LineMethod()[LINES_VERTICAL] = "纵向排列";
+        LineMethod()[DOUBLE_HORIZONTAL] = "左右双面";
+        LineMethod()[DOUBLE_VERTICAL] = "上下双面";
+        printf("global\n");
+    }
     static long GetThisYearDay(int year, int month, int day)
     {
         int counterOfOddYear = (year / 4);
@@ -103,6 +112,22 @@ public:
             }
 
         }
+    }
+
+    static std::unordered_map<int,std::string> &LineMethod(){
+        static std::unordered_map<int,std::string> LM;
+        static bool isOK = false;
+        if(!isOK)
+        {
+            isOK = true;
+            LineMethod()[LINES_HORIZONTAL_AI] = "智能横向排列";
+            LineMethod()[LINES_HORIZONTAL] = "横向排列";
+            LineMethod()[LINES_VERTICAL_AI] = "智能纵向排列";
+            LineMethod()[LINES_VERTICAL] = "纵向排列";
+            LineMethod()[DOUBLE_HORIZONTAL] = "左右双面";
+            LineMethod()[DOUBLE_VERTICAL] = "上下双面";
+        }
+        return LM;
     }
 
     static QString GetBoardInfo()

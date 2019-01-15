@@ -71,7 +71,7 @@ void MainWindow::Init(const char* pName)
 
     QDir dir;
     if(!dir.exists(CABLI)) dir.mkdir(CABLI);
-    if(!dir.exists(CABLI)) dir.mkdir(MODEL);
+    if(!dir.exists(MODEL)) dir.mkdir(MODEL);
     if(!dir.exists(CABLI)) dir.mkdir(INI);
 
     //防止程序多开
@@ -99,37 +99,9 @@ void MainWindow::Init(const char* pName)
     std::cout<<"旋转" << Mediator::GetIns()->m_cameraMatrix<<std::endl;
     std::cout<<"畸变" << Mediator::GetIns()->m_distCoeffs<<std::endl;
 
-
-    QString Info;
-    int Camera_qty = MSerialsCamera::init_camera();
-    if(Camera_qty < 1){
-        Info += QString::fromLocal8Bit("没有发现相机");
-    }
-    else
-    {
-        MSerialsCamera::GetMachineImage(MSerialsCamera::IMAGE_FLIPED,0.0,0,Mediator::GetIns()->m_cameraMatrix,Mediator::GetIns()->m_distCoeffs);
-    }
-
-#ifndef NO_MOTION
-    //初始化板卡
-    int Card_Qty = motion::GetIns()->init();
-    if(Card_Qty < 1) {
-        Info += QString::fromLocal8Bit(" 没有发现控制卡");
-    }
-    else
-    {
-        motion::GetIns()->CurrentCard()->SetNegLimit(X_AXIS_MOTOR, X_AXIS_LIMIT);
-    }
-#endif
-
-    if(!Info.isEmpty())
-        QMessageBox::warning(NULL,QString("Error"),Info);
-
     Mediator::GetIns()->UpdateMessage("启动程序");
-
     //初始化相机
     Mediator::GetIns()->Load_Model(Preference::GetIns()->prj->Model_Name.toLocal8Bit().toStdString().data(),Mediator::GetIns()->MainWindowDispHd,false);
-
 }
 
 MainWindow::~MainWindow()

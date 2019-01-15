@@ -87,7 +87,7 @@ ui->lineEdit_ModelGap->setText(QString::number(static_cast<int>(MODEL_GAP)));
 
 ui->lineEdit_DistanceLeftToPunch->setText(QString::number(POS_ACCURCY));
 
-ui->lineEdit_CamAngle->setText(QString::number(CAMERA_ANGLE));
+ui->lineEdit_CamAngle->setText(QString::number(CAMERA_ANGLE,'g',8));
 
 ui->lineEdit_XLimit->setText(QString::number(X_AXIS_LIMIT));
 
@@ -243,6 +243,12 @@ unsigned int __stdcall CabliCamera(void * pThis)
         if (strlen(error_s.c_str()) > 0)
         {
             QMessageBox::warning(NULL,QString("Error"),QString(error_s.c_str()).toLocal8Bit());
+        }
+        else
+        {
+            HalconCpp::SetTposition(Mediator::GetIns()->SetDispHd,10,0);
+            HalconCpp::SetColor(Mediator::GetIns()->SetDispHd,"green");
+            HalconCpp::WriteString(Mediator::GetIns()->SetDispHd,"标定完毕");
         }
     }catch(cv::Exception ex)
     {
@@ -737,4 +743,44 @@ void SettingDialog::on_pushButton_SavePara_2_clicked()
         HalconCpp::SetColor(Mediator::GetIns()->SetDispHd,"red");
         HalconCpp::WriteString(Mediator::GetIns()->SetDispHd,ex.what());
     }
+}
+
+void SettingDialog::on_pushButton_AngleUp_clicked()
+{
+
+    try
+    {
+        CAMERA_ANGLE = CAMERA_ANGLE + 0.05;
+        HalconCpp::HObject Hobj;
+        cv::Mat Snap_Image  = MSerialsCamera::GetMachineImage(MSerialsCamera::IMAGE_FLIPED,CAMERA_ANGLE).clone();
+        Excv::MatToHObj(Snap_Image,Hobj);
+        Excv::h_disp_obj(Hobj,Mediator::GetIns()->SetDispHd);
+        ui->lineEdit_CamAngle->setText(QString::number(CAMERA_ANGLE,'g',8));
+        on_pushButton_SavePara_clicked();
+    }catch(cv::Exception ex)
+    {
+        HalconCpp::SetTposition(Mediator::GetIns()->SetDispHd,10,0);
+        HalconCpp::SetColor(Mediator::GetIns()->SetDispHd,"red");
+        HalconCpp::WriteString(Mediator::GetIns()->SetDispHd,ex.what());
+    }
+}
+
+void SettingDialog::on_pushButton_Angle_Down_clicked()
+{
+    try
+    {
+        CAMERA_ANGLE = CAMERA_ANGLE - 0.05;
+        HalconCpp::HObject Hobj;
+        cv::Mat Snap_Image  = MSerialsCamera::GetMachineImage(MSerialsCamera::IMAGE_FLIPED,CAMERA_ANGLE).clone();
+        Excv::MatToHObj(Snap_Image,Hobj);
+        Excv::h_disp_obj(Hobj,Mediator::GetIns()->SetDispHd);
+        ui->lineEdit_CamAngle->setText(QString::number(CAMERA_ANGLE,'g',8));
+        on_pushButton_SavePara_clicked();
+    }catch(cv::Exception ex)
+    {
+        HalconCpp::SetTposition(Mediator::GetIns()->SetDispHd,10,0);
+        HalconCpp::SetColor(Mediator::GetIns()->SetDispHd,"red");
+        HalconCpp::WriteString(Mediator::GetIns()->SetDispHd,ex.what());
+    }
+
 }

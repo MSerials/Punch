@@ -13,9 +13,6 @@ using namespace CryptoPP;
 #define ORIGINDATE	L"2019-1-1"
 
 
-
-
-
 bool isOK = false;
 
 CryptDialog::CryptDialog(char* Crypt,QWidget *parent) :

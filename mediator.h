@@ -33,16 +33,17 @@ class Mediator
 #define     TIME_GAP    100
 
 //定义机器的状态
-#define     NoError (0)
-#define     NOT_ORIGIN  (1)
-#define     XAXISALM    (1<<1)
-#define     YAXISALM    (1<<2)
-#define     RUN         (1<<3)
-#define     STOP        (1<<4)
-#define     PAUSE       (1<<5)
-#define     NO_CAMERA   (1<<6)
-#define     ERROR_PUNCHING (1<<7)
-#define     ORIGING     (1<<8)
+#define     NoError         (0)
+#define     NOT_ORIGIN      (1)
+#define     XAXISALM        (1<<1)
+#define     YAXISALM        (1<<2)
+#define     RUN             (1<<3)
+#define     STOP            (1<<4)
+#define     PAUSE           (1<<5)
+#define     NO_CAMERA       (1<<6)
+#define     NO_MOTION_CARD  (1<<7)
+#define     ERROR_PUNCHING  (1<<8)
+#define     ORIGING         (1<<9)
 
 //操作按钮定义
 #define     MOVE_UP     (1)
@@ -71,15 +72,55 @@ public:
     Memento memento;
     Control_Var Ctrl_Var;
 
+    static unsigned int __stdcall InitCameraAndMotionCard(void* pLVOID){
+        static std::mutex m_mtx;
+        std::lock_guard<std::mutex> lck(m_mtx);
+        Mediator::GetIns()->MachineState = (NO_CAMERA |NO_MOTION_CARD);
+
+        std::string InitInfo;
+        int Camera_qty = MSerialsCamera::init_camera();
+        if(Camera_qty < 1){
+            InitInfo += "没有发现相机...";
+        }
+        else
+        {
+            MSerialsCamera::GetMachineImage(MSerialsCamera::IMAGE_FLIPED,0.0,0,Mediator::GetIns()->m_cameraMatrix,Mediator::GetIns()->m_distCoeffs);
+            Mediator::GetIns()->MachineState &= ~NO_CAMERA;
+        }
+
+
+        //初始化板卡
+        int Card_Qty = motion::GetIns()->init();
+        if(Card_Qty < 1) {
+            InitInfo += "没有发现控制卡...";
+        }
+        else
+        {
+            motion::GetIns()->CurrentCard()->SetNegLimit(X_AXIS_MOTOR, X_AXIS_LIMIT);
+            Mediator::GetIns()->MachineState &= ~NO_MOTION_CARD;
+        }
+
+
+        if(!InitInfo.empty())
+            Mediator::GetIns()->UpdateMessage(InitInfo);
+        else
+            Mediator::GetIns()->UpdateMessage("初始化完毕");
+        return 0;
+
+    }
+
+private:
     void Init()
     {
-        MachineState = (STOP|NOT_ORIGIN);
+        MachineState = (STOP|NOT_ORIGIN|NO_CAMERA |NO_MOTION_CARD);
+        (HANDLE)_beginthreadex(NULL, 0,InitCameraAndMotionCard, this, 0, NULL);
         (HANDLE)_beginthreadex(NULL, 0,GetPoints, this, 0, NULL);
         (HANDLE)_beginthreadex(NULL, 0,MovePunch, this, 0, NULL);
         (HANDLE)_beginthreadex(NULL, 0,IOScanner, this, 0, NULL);
         (HANDLE)_beginthreadex(NULL, 0,Process_, this, 0, NULL);
         (HANDLE)_beginthreadex(NULL, 0,thread_Memento, this, 0, NULL);
     }
+
 
     //相机处理
     static unsigned int __stdcall GetPoints(void* pLVOID){
@@ -1097,6 +1138,13 @@ catch(cv::Exception ex)
             else
                 MachineState &= ~NO_CAMERA;
 
+
+            if(NO_MOTION_CARD == (NO_MOTION_CARD&MachineState))
+            {
+                isOK = false;
+                UpdateMessage("没有发现控制卡");
+            }
+
             int x_new_bit = motion::GetIns()->CurrentCard()->ReadInputBit(YANWEI_AXIS_IO) & AXIS_ALM;
             int y_new_bit = motion::GetIns()->CurrentCard()->ReadInputBit(YANWEI_AXIS_IO, 1) & AXIS_ALM;
 
@@ -1165,7 +1213,9 @@ catch(cv::Exception ex)
             cv::threshold(single_Model, b_Model, 128, 255, CV_THRESH_BINARY);
             std::vector<std::vector<cv::Point>> contours,tmp_cotours;
             cv::Mat add_Border;
-            cv::copyMakeBorder(b_Model, add_Border, 1 + ADD_BOUND_SIZE, 1 + ADD_BOUND_SIZE, 1 + ADD_BOUND_SIZE, 1 + ADD_BOUND_SIZE, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+            int AddHeightBorder = (IMAGE_HEIGHT - b_Model.rows)/2 < 2? 2 :(IMAGE_HEIGHT - b_Model.rows)/2;
+            int AddWidthBorder = (IMAGE_WIDTH - b_Model.cols)/2 < 2 ? 2: (IMAGE_WIDTH - b_Model.cols)/2;
+            cv::copyMakeBorder(b_Model, add_Border,  AddHeightBorder,AddHeightBorder, AddWidthBorder, AddWidthBorder, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
             cv::findContours(add_Border, tmp_cotours, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
             if (tmp_cotours.empty())
             {

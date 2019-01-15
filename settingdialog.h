@@ -51,6 +51,10 @@ private slots:
 
     void on_pushButton_SavePara_2_clicked();
 
+    void on_pushButton_AngleUp_clicked();
+
+    void on_pushButton_Angle_Down_clicked();
+
 private:
     Ui::SettingDialog *ui;
 };

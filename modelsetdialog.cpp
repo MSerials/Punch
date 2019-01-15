@@ -188,6 +188,15 @@ ModelSetDialog::ModelSetDialog(QWidget *parent) :
 
      connect(ui->pushButton_Grab,&QPushButton::pressed,[=](){on_pushButton_Grab_clicked();});
      isOpend = true;
+
+     for(int i =  LINES_HORIZONTAL_AI ; i < DOUBLE_VERTICAL ; i++)
+     ui->comboBox_LineMethod->addItem(QString::fromLocal8Bit(_global::LineMethod()[i].c_str()));
+
+     connect(ui->comboBox_LineMethod,&QComboBox::currentTextChanged,[=](QString Str){
+         int Idx = ui->comboBox_LineMethod->currentIndex();
+         LINE_METHOD = Idx;
+         std::cout << Str.toStdString() <<std::endl;
+     });
 }
 
 ModelSetDialog::~ModelSetDialog()
@@ -329,3 +338,8 @@ void ModelSetDialog::on_pushButton_Grab_clicked()
 
 
 
+
+void ModelSetDialog::on_pushButton_OSK_clicked()
+{
+
+}

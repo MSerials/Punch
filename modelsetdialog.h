@@ -51,6 +51,8 @@ public:
 private slots:
   //  void on_pushButton_StartCabli_clicked();
 
+    void on_pushButton_OSK_clicked();
+
 private:
     Ui::ModelSetDialog *ui;
 };
