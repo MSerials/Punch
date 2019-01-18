@@ -113,6 +113,8 @@ public:
 
 	//override
 	int  ReadInputBit(uint32 bit = 0, int second_sel = 0) {
+                if(bit == 6)
+                    return 0;
 
 		switch (second_sel)
 		{

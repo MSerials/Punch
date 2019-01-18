@@ -31,7 +31,7 @@ public:
     void on_pushButton_GenCircle_clicked();
 
     void on_pushButton_GenRect_clicked();
-
+/*
     void on_pushButton_SetModel_clicked();
 
     void on_pushButton_GetModel_clicked();
@@ -41,6 +41,7 @@ public:
     void on_pushButton_Snap_clicked();
 
     void on_pushButton_SetCheckArea_clicked();
+    */
 
     void on_pushButton_SaveImage_clicked();
 

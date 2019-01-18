@@ -76,7 +76,7 @@
 #define X_CAM_DISTANCE                          Preference::GetIns()->prj->xAxis_cam_dis
 #define Y_CAM_DISTANCE                          -Preference::GetIns()->prj->yAxis_cam_dis
 #define X_CAM_DISTANCE_PLS                      Preference::GetIns()->prj->xAxis_cam_distance_pls
-#define Y_CAM_DISTANCE_PLS                      -Preference::GetIns()->prj->yAxis_cam_distance_pls
+#define Y_CAM_DISTANCE_PLS_EX                   Preference::GetIns()->prj->yAxis_cam_distance_pls
 #define ADD_BOUND_SIZE                          static_cast<int>(Preference::GetIns()->prj->distance_object)
 #define ADD_BOUND                               cv::Size(ADD_BOUND_SIZE,ADD_BOUND_SIZE)
 #define Get_Obj_Threshold                       static_cast<int>(Preference::GetIns()->prj->threshold_value)

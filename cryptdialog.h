@@ -12,7 +12,7 @@ class CryptDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit CryptDialog(char* Cyrpt,QWidget *parent = 0);
+    explicit CryptDialog(char* Cyrpt = nullptr,QWidget *parent = 0);
     ~CryptDialog();
     char **m_Crypt = nullptr;
     bool Init();

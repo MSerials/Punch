@@ -69,9 +69,9 @@ ui->lineEdit_YAxisDisPerPls->setText(QString::number(Y_DIS_PULS_RATIO,'g',8));
 
 ui->lineEdit_XAxisCamDis->setText(QString::number(X_CAM_DISTANCE_PLS));
 
-ui->lineEdit_YAxisCamDis->setText(QString::number(Y_CAM_DISTANCE_PLS));
+ui->lineEdit_YAxisCamDis->setText(QString::number(Y_CAM_DISTANCE_PLS_EX));
 
-cv::Point pls(X_CAM_DISTANCE_PLS,Y_CAM_DISTANCE_PLS);
+cv::Point pls(X_CAM_DISTANCE_PLS,Y_CAM_DISTANCE_PLS_EX);
 cv::Point2d mm(0,0);
 Excv::pls_to_mm(pls,mm);
 ui->label_cam_to_PunchX->setText(QString::fromLocal8Bit("相机冲床X轴距离：") + QString::number(mm.x,'g',6) + QString::fromStdString(" mm"));
@@ -136,11 +136,11 @@ void SettingDialog::on_pushButton_SavePara_clicked()
 
     Preference::GetIns()->prj->yAxis_cam_distance_pls = ui->lineEdit_YAxisCamDis->text().toInt();
 
-    cv::Point pls(X_CAM_DISTANCE_PLS,Y_CAM_DISTANCE_PLS);
+    cv::Point pls(X_CAM_DISTANCE_PLS,Y_CAM_DISTANCE_PLS_EX);
     cv::Point2d mm(0,0);
     Excv::pls_to_mm(pls,mm);
     ui->label_cam_to_PunchX->setText(QString::fromLocal8Bit("相机冲床X轴距离：") + QString::number(mm.x,'g',6) + QString::fromStdString(" mm"));
-    ui->label_cam_to_PunchY->setText(QString::fromLocal8Bit("相机冲床Y轴距离：") + QString::number(-mm.y,'g',6) + QString::fromStdString(" mm"));
+    ui->label_cam_to_PunchY->setText(QString::fromLocal8Bit("相机冲床Y轴距离：") + QString::number(mm.y,'g',6) + QString::fromStdString(" mm"));
 
     X_AXIS_SPEED = ui->lineEdit_XAxisSpeed->text().toInt();
 
@@ -750,7 +750,7 @@ void SettingDialog::on_pushButton_AngleUp_clicked()
 
     try
     {
-        CAMERA_ANGLE = CAMERA_ANGLE + 0.05;
+        CAMERA_ANGLE = CAMERA_ANGLE + 0.025;
         HalconCpp::HObject Hobj;
         cv::Mat Snap_Image  = MSerialsCamera::GetMachineImage(MSerialsCamera::IMAGE_FLIPED,CAMERA_ANGLE).clone();
         Excv::MatToHObj(Snap_Image,Hobj);
@@ -769,7 +769,7 @@ void SettingDialog::on_pushButton_Angle_Down_clicked()
 {
     try
     {
-        CAMERA_ANGLE = CAMERA_ANGLE - 0.05;
+        CAMERA_ANGLE = CAMERA_ANGLE - 0.025;
         HalconCpp::HObject Hobj;
         cv::Mat Snap_Image  = MSerialsCamera::GetMachineImage(MSerialsCamera::IMAGE_FLIPED,CAMERA_ANGLE).clone();
         Excv::MatToHObj(Snap_Image,Hobj);

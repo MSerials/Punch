@@ -75,7 +75,7 @@ public:
     static unsigned int __stdcall InitCameraAndMotionCard(void* pLVOID){
         static std::mutex m_mtx;
         std::lock_guard<std::mutex> lck(m_mtx);
-        Mediator::GetIns()->MachineState = (NO_CAMERA |NO_MOTION_CARD);
+        Mediator::GetIns()->MachineState |= (NO_CAMERA |NO_MOTION_CARD);
 
         std::string InitInfo;
         int Camera_qty = MSerialsCamera::init_camera();
@@ -632,7 +632,7 @@ try{
             for (std::list<std::vector<cv::Point2l>>::iterator it = Ctrl_Var.ModelsPostion.begin(); it != Ctrl_Var.ModelsPostion.end();)
             {
 
-                if ((Y_CAM_DISTANCE_PLS - it->at(0).y) > -1)
+                if ((-Y_CAM_DISTANCE_PLS_EX - it->at(0).y) > -1)
                 {
                     //进行排序，冲压最近的那个点
                     SortPunchVector(*it);
@@ -697,9 +697,9 @@ try{
             int MinPuls = 0;
             for (std::list<std::vector<cv::Point2l>>::iterator it = Ctrl_Var.ModelsPostion.begin(); it != Ctrl_Var.ModelsPostion.end();it++)
             {
-                    if ((Y_CAM_DISTANCE_PLS - it->at(0).y) < 0)
+                    if ((-Y_CAM_DISTANCE_PLS_EX - it->at(0).y) < 0)
                     {
-                        MinPuls = static_cast<int>(Y_CAM_DISTANCE_PLS - it->at(0).y);
+                        MinPuls = static_cast<int>(-Y_CAM_DISTANCE_PLS_EX - it->at(0).y);
                         Ctrl_Var.MovingForwardPuls = Ctrl_Var.MovingForwardPuls > MinPuls ? Ctrl_Var.MovingForwardPuls : MinPuls;
     #ifdef NO_MOTION
                         printf_s("应该前进%d脉冲", Ctrl_Var.MovingForwardPuls);

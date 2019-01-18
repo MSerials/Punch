@@ -189,7 +189,7 @@ ModelSetDialog::ModelSetDialog(QWidget *parent) :
      connect(ui->pushButton_Grab,&QPushButton::pressed,[=](){on_pushButton_Grab_clicked();});
      isOpend = true;
 
-     for(int i =  LINES_HORIZONTAL_AI ; i < DOUBLE_VERTICAL ; i++)
+     for(int i =  LINES_HORIZONTAL_AI ; i <= DOUBLE_VERTICAL ; i++)
      ui->comboBox_LineMethod->addItem(QString::fromLocal8Bit(_global::LineMethod()[i].c_str()));
 
      connect(ui->comboBox_LineMethod,&QComboBox::currentTextChanged,[=](QString Str){
@@ -261,30 +261,7 @@ void ModelSetDialog::on_pushButton_GenRect_clicked()
     Mediator::GetIns()->Load_Model(_model_name,Mediator::GetIns()->ModelDisp);
 }
 
-void ModelSetDialog::on_pushButton_SetModel_clicked()
-{
 
-}
-
-void ModelSetDialog::on_pushButton_GetModel_clicked()
-{
-
-}
-
-void ModelSetDialog::on_pushButton_DrawModelArea_clicked()
-{
-
-}
-
-void ModelSetDialog::on_pushButton_Snap_clicked()
-{
-
-
-}
-
-void ModelSetDialog::on_pushButton_SetCheckArea_clicked()
-{
-}
 
 void ModelSetDialog::on_pushButton_SaveImage_clicked()
 {

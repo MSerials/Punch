@@ -66,6 +66,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 void MainWindow::Init(const char* pName)
 {
+
     ProgmaName = std::string(pName);
     std::cout <<"ProgramName is "<<ProgmaName<<std::endl;
 
@@ -85,10 +86,6 @@ void MainWindow::Init(const char* pName)
      exit(0);
     }
 
-    char cVersion[256] = {0};
-    CryptDialog CryptDlg(cVersion);
-    if(false == CryptDlg.Init())
-    CryptDlg.exec();
 
     //初始化参数
     Preference::GetIns()->prj->SetFilePos(QString(PRJ_PATH));
