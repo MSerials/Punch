@@ -71,6 +71,7 @@ public:
     MEvent evt_Process,evt_GetPoint,evt_Punch,evt_Memento;
     Memento memento;
     Control_Var Ctrl_Var;
+    HalconCpp::HObject HalconImage;
 
     static unsigned int __stdcall InitCameraAndMotionCard(void* pLVOID){
         static std::mutex m_mtx;
@@ -212,9 +213,7 @@ public:
     //唯一能知道的暂停状态是前进的Y轴和 目前的
     long long GetState(){return MachineState;}
 
-
-
-    //drawout 代表是要填充的，用于计算而不是显示
+    //drawout 代表是要填充的，用于计算而不是显示，反之是显示用的，不是计算用的
     bool  DrawPts(cv::Mat& InputArryay, Control_Var &Ctrl_Var, bool isDrawOut = false)
     {
         CV_Assert(!InputArryay.empty());
@@ -281,20 +280,48 @@ public:
                 CV_Assert(!InputArray.empty());
                 CV_Assert(InputArray.type() == CV_8UC1);
                 cv::threshold(InputArray,Cal_Image,Ctrl_Var.image_threshold,255,CV_THRESH_BINARY);
+
+
+                int sized = static_cast<int>(Ctrl_Var.margin_to_model);
+                if(sized > 0)
+                {
+                cv::Size si(sized, sized);
+                cv::Mat er,get_Struct = cv::getStructuringElement(cv::MORPH_RECT,si);
+                cv::dilate(Cal_Image, er, get_Struct);
+                Cal_Image = er.clone();
+                }
+
                 CvCvtColor(InputArray,Show_Image,CV_GRAY2BGR);
                 Ctrl_Var.Tale_Pix   =   0;
                 std::vector<std::vector<cv::Point>>  Contours= ModelContours;
+
+                //注意备注,在确认计算前找到对应的点
+                Ctrl_Var.Cal_ModelsPostion.clear();
+                for (auto &vector_points : Ctrl_Var.ModelsPostion)
+                {
+                    std::vector<cv::Point> tmp;
+                    for (auto &p : vector_points)
+                    {
+                        cv::Point pt;
+                        Excv::pls_to_pix(p, pt);
+                        tmp.push_back(pt);
+                    }
+                    Ctrl_Var.Cal_ModelsPostion.push_back(tmp);
+                }
+                //可以优化，优化应该在确定正反面做法后
                 DrawPts(Cal_Image, Ctrl_Var, true);
+
                 switch (Sel)
                 {
-                case LINES_VERTICAL_AI:
-                        return CvGeAllPointsCircleVerticalAI(Cal_Image, ModelContours, Ctrl_Var);
-                case LINES_VERTICAL:
-                        return CvGeAllPointsCircleVerticalAI(Cal_Image, ModelContours, Ctrl_Var);
+                //
                 case LINES_HORIZONTAL_AI:
                         return CvGeAllPointsHorizentalAI(Cal_Image, ModelContours, Ctrl_Var);
                 case LINES_HORIZONTAL:
                         return CvGeAllPointsHorizentalAI(Cal_Image, ModelContours, Ctrl_Var);
+                case LINES_VERTICAL_AI:
+                        return CvGeAllPointsCircleVerticalAI(Cal_Image, ModelContours, Ctrl_Var);
+                case LINES_VERTICAL:
+                        return CvGeAllPointsCircleVerticalAI(Cal_Image, ModelContours, Ctrl_Var);
                 case DOUBLE_HORIZONTAL:
                         return CvGeAllPointsHorizentalAI(Cal_Image, CvGetDoubleContoursHorizental_Ex(ModelContours), Ctrl_Var);
                 case DOUBLE_VERTICAL:
@@ -342,7 +369,7 @@ public:
             }
             Ctrl_Var.ModelsPostion.push_back(vts);
         }
-
+        //显示使用的，已经进行过偏移？
         DrawPts(Show_Image, Ctrl_Var, false);
 
         for (auto &vpts2 : Ctrl_Var.ModelsPostion) {
@@ -405,9 +432,7 @@ public:
         //UpdateMessage("结束拍照");
         //通知拍摄完毕，说明可以动了
         isSnapOver = true;
-
         //参数准备
-
         Ctrl_Var.Cal_ModelsPostion = Get_Points_Image(Image, Ctrl_Var.ModelContours, Ctrl_Var, LINE_METHOD);
         }catch(cv::Exception ex)
         {
@@ -420,6 +445,8 @@ public:
 
     bool CheckPunchTimeOut()
     {
+        //return true;
+
         for(int i = 0;i< 8;i++) motion::GetIns()->CurrentCard()->WriteOutput(OUT_PUNCH_CYL, ON);
         bool porigin_state = (IN_PUNCH_ORIGIN == (IN_PUNCH_ORIGIN & motion::GetIns()->CurrentCard()->ReadInputBit(YANWEI_IO_SEL)));
         bool poldorigin_state = porigin_state;
@@ -1216,6 +1243,7 @@ catch(cv::Exception ex)
             int AddHeightBorder = (IMAGE_HEIGHT - b_Model.rows)/2 < 2? 2 :(IMAGE_HEIGHT - b_Model.rows)/2;
             int AddWidthBorder = (IMAGE_WIDTH - b_Model.cols)/2 < 2 ? 2: (IMAGE_WIDTH - b_Model.cols)/2;
             cv::copyMakeBorder(b_Model, add_Border,  AddHeightBorder,AddHeightBorder, AddWidthBorder, AddWidthBorder, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+            Excv::MatToHObj(add_Border, HalconImage);
             cv::findContours(add_Border, tmp_cotours, CV_RETR_CCOMP, CV_CHAIN_APPROX_NONE);
             if (tmp_cotours.empty())
             {

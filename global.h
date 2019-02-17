@@ -36,7 +36,8 @@
 #define ERROR_AUTHOR_	3
 #define ERROR_TIMEOUT_	4
 
-
+#define _VERSION       "20190212"
+#define __VERSION      L"20190122"
 
 class MEvent
 {

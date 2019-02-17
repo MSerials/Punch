@@ -15,6 +15,9 @@
 #include <QMessageBox>
 #include <QTextCodec>
 #include "cryptdialog.h"
+#include <string>
+#include <iostream>
+#include <fstream>
 
 MainWindow *pMainWin = nullptr;
 int counter = 0;
@@ -99,6 +102,20 @@ void MainWindow::Init(const char* pName)
     Mediator::GetIns()->UpdateMessage("启动程序");
     //初始化相机
     Mediator::GetIns()->Load_Model(Preference::GetIns()->prj->Model_Name.toLocal8Bit().toStdString().data(),Mediator::GetIns()->MainWindowDispHd,false);
+
+    ui->Labell_Version->setText(QString::fromLocal8Bit("当前版本：") + QString(_VERSION));
+
+    std::ofstream file("ver.dat");
+    file << _VERSION;
+    file.close();
+
+    (HANDLE)_beginthreadex(NULL, 0,CheckVersion, this, 0, NULL);
+}
+
+unsigned int MainWindow::CheckVersion(void *pLvoid)
+{
+    QProcess::startDetached(tr("scrapy.exe"));
+    return 0;
 }
 
 MainWindow::~MainWindow()

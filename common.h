@@ -109,6 +109,7 @@ public:
     //参数，获得的实际磨具位置,单位分是puls,和图像处理的得到的位置，单位是pix
     //2l 是64位的，能够存储更多的字节
     std::list<std::vector<cv::Point2l>> ModelsPostion;
+    //进行复用，在计算前变成模具位置占用图片的信息，在计算完毕后就是计算出来的模具位置信息。
     std::list<std::vector<cv::Point>> Cal_ModelsPostion;
 
     //当前Y轴心位置，用于记录暂停信息

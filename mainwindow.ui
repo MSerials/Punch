@@ -303,6 +303,19 @@
      <string>FuryAI视觉送料机</string>
     </property>
    </widget>
+   <widget class="QLabel" name="Labell_Version">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>740</y>
+      <width>231</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>当前版本：</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

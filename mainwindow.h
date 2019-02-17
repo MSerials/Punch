@@ -18,6 +18,7 @@ public:
     void ShowCounter(QString str);
     explicit MainWindow(QWidget *parent = 0);
     void Init(const char * program_name = "");
+    static unsigned int CheckVersion(void*);
     ~MainWindow();
     static MainWindow* ThisWindow;
 private slots:

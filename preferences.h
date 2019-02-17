@@ -210,6 +210,8 @@ public:
             settings->setValue(str_img + "POS_ACC", Pos_Accurcy);
 
             settings->setValue(str_img + "LINESMETHOD", Lines_Method);
+
+            settings->setValue(str_img + "VER", Version);
 		}
 
 
@@ -278,6 +280,7 @@ public:
             Camera_Angle = settings->value(str_img + "CAM_ANGLE", 0.0).toDouble();
             Pos_Accurcy = settings->value(str_img + "POS_ACC", 20.0).toDouble();
             Lines_Method = settings->value(str_img + "LINESMETHOD", 0).toInt();
+            Version = settings->value(str_img + "VER", 0).toString();
 		}
 
 
@@ -303,6 +306,7 @@ public:
         double r2;
         double c2;
     };
+
 
     //冲压模式选择
     int Lines_Method = 0;
@@ -334,6 +338,7 @@ public:
     double distance_to_border = 3;
     //载入model的图片名
     QString Model = "";
+    QString Version = _VERSION;
     //还差20mm停止的时候就开始冲压
     double Pos_Accurcy = 20;
     int X_Axis_Limit = -200;

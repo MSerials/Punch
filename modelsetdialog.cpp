@@ -9,6 +9,7 @@
 #include <process.h>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QTimer>
 //#include <QFileDialog>
 
 bool isGrab = false;
@@ -89,6 +90,26 @@ ModelSetDialog::ModelSetDialog(QWidget *parent) :
     HalconCpp::SetCheck("~father");
     HalconCpp::OpenWindow(0, 0, nWndWidth, nWndHeight, (Hlong)ui->widget->winId(), "visible", "", &    Mediator::GetIns()->ModelDisp);
     HalconCpp::SetCheck("father");
+
+
+    ui->pushButton_ModelDown->setAttribute(Qt::WA_AcceptTouchEvents);
+    ui->pushButton_ModelDown->installEventFilter(this);
+
+    ui->pushButton_ModelLeft->setAttribute(Qt::WA_AcceptTouchEvents);
+    ui->pushButton_ModelLeft->installEventFilter(this);
+
+    ui->pushButton_ModelRight->setAttribute(Qt::WA_AcceptTouchEvents);
+    ui->pushButton_ModelRight->installEventFilter(this);
+
+    ui->pushButton_ModelUp->setAttribute(Qt::WA_AcceptTouchEvents);
+    ui->pushButton_ModelUp->installEventFilter(this);
+
+    ui->pushButton_RotateAntiClock->setAttribute(Qt::WA_AcceptTouchEvents);
+    ui->pushButton_RotateAntiClock->installEventFilter(this);
+
+    ui->pushButton_RotateClock->setAttribute(Qt::WA_AcceptTouchEvents);
+    ui->pushButton_RotateClock->installEventFilter(this);
+
 
     //bug??设计师的信号槽不能用了？
     connect(ui->pushButton_Snap,&QPushButton::clicked,[=](){CamSnap();});
@@ -197,7 +218,273 @@ ModelSetDialog::ModelSetDialog(QWidget *parent) :
          LINE_METHOD = Idx;
          std::cout << Str.toStdString() <<std::endl;
      });
+
+
+     //启动定时器
+     QTimer *timer_io = new QTimer();
+     //设置定时器每个多少毫秒发送一个timeout()信号
+     timer_io->setInterval(20);
+     connect(timer_io, &QTimer::timeout, [=]() {
+         this->OnTimer();
+     });
+     timer_io->start();
 }
+
+void ModelSetDialog::TransRegion(bool isPaint)
+{
+    try{
+    HObject ho_DestRegions_,ho_Mirror;
+    ho_Mirror = ho_DestRegions;
+    AreaCenter(ho_DestRegions,&hv_Area,&hv_Row,&hv_Column);
+    if(MirrorX) MirrorRegion(ho_DestRegions,&ho_Mirror,"column",2*hv_Column);
+    if(MirrorY) MirrorRegion(ho_Mirror,&ho_Mirror,"row",2*hv_Row);
+    HalconCpp::SetCheck("~give_error");
+    HalconCpp::SetColor(Mediator::GetIns()->ModelDisp,"cyan");
+    HalconCpp::SetDraw(Mediator::GetIns()->ModelDisp,"fill");
+    MoveRegion(ho_Mirror, &ho_DestRegions_, hv_Row_Moved, hv_Column_Moved);
+    HTuple Str = "已经旋转：";
+    AreaCenter(ho_DestRegions_,&hv_Area,&hv_Row,&hv_Column);
+    HomMat2dIdentity(&hv_HomMat2DIdentity);
+    HomMat2dRotate(hv_HomMat2DIdentity, hv_phi.TupleRad(), hv_Row, hv_Column,&hv_HomMat2DRotate);
+    //Apply an arbitrary affine transformation to an image
+    AffineTransRegion(ho_DestRegions_, &ho_DestRegions_, hv_HomMat2DRotate, "constant");
+    SetTposition(Mediator::GetIns()->ModelDisp, 1, 1);
+    Excv::h_disp_obj(Mediator::GetIns()->HalconImage,Mediator::GetIns()->ModelDisp);
+    HalconCpp::DispObj(ho_DestRegions_,Mediator::GetIns()->ModelDisp);
+    WriteString(Mediator::GetIns()->ModelDisp,Str+hv_phi.ToString());
+
+    if(isPaint)
+    {
+        HTuple r1 = 0,c1 = 0,r2 = 0,c2 = 0,Area;
+        HObject ImageResult,Image = Mediator::GetIns()->HalconImage;
+        PaintRegion(ho_DestRegions_,Image,&ImageResult,255,"fill");
+        AreaCenter(ho_DestRegions,&Area,&r1,&c1);
+        AreaCenter(ho_DestRegions_,&Area,&r2,&c2);
+        WriteImage(ImageResult,"bmp",255,"TMP");
+        cv::Mat Model,Load = cv::imread("TMP.bmp");
+        CvCvtColor(Load,Model,CV_BGR2GRAY);
+        int r11 = r1[0].D();
+        int c11 = c1[0].D();
+        int r22 = r2[0].D();
+        int c22 = c2[0].D();
+        cv::line(Model,cv::Point(c11,r11),cv::Point(c22,r22),cv::Scalar(255,128,0),2);
+      //  char model_name[256] = { 0 };
+      //  sprintf_s(model_name, "宽%5.2fmm-高%5.2fmm",w,h);
+        std::string _model_name = Excv::cv_write_image(Model, "Model", "Copy-",true);
+        Mediator::GetIns()->Load_Model(_model_name,Mediator::GetIns()->ModelDisp);
+    }
+
+    }catch(HalconCpp::HException except)
+    {
+        HTuple ExceptionMessage;
+        except.ToHTuple(&ExceptionMessage);
+        SetTposition(Mediator::GetIns()->ModelDisp, 20, 21);
+        WriteString(Mediator::GetIns()->ModelDisp, ExceptionMessage);
+    }
+    catch(cv::Exception ex)
+    {
+
+    }
+
+}
+
+void ModelSetDialog::OnTimer()
+{
+    static int DelayTime = 25;
+    using namespace HalconCpp;
+    switch(Operation)
+    {
+    case NOP:DelayTime = 25;break;
+    case MIRROR_UPDOWN:
+        break;
+    case MIRROR_LEFTRIGHT:break;
+    case ROTATE_CLOCK:
+        if(25 == DelayTime)
+        {
+            DelayTime--;
+        }
+        else if(DelayTime > 0)
+        {
+            DelayTime--;
+            break;
+        }
+
+        hv_phi = hv_phi + 1;
+        TransRegion();
+        break;
+    case ROTATE_ANTICLOCK:
+        if(25 == DelayTime)
+        {
+            DelayTime--;
+        }
+        else if(DelayTime > 0)
+        {
+            DelayTime--;
+            break;
+        }
+
+        hv_phi = hv_phi - 1;
+        TransRegion();
+        break;
+    case MODEL_MOVE_UP:
+        if(25 == DelayTime)
+        {
+            DelayTime--;
+        }
+        else if(DelayTime > 0)
+        {
+            DelayTime--;
+            break;
+        }
+        hv_Row_Moved = hv_Row_Moved - 1;
+        TransRegion();
+        break;
+    case MODEL_MOVE_DOWN:
+        if(25 == DelayTime)
+        {
+            DelayTime--;
+        }
+        else if(DelayTime > 0)
+        {
+            DelayTime--;
+            break;
+        }
+        hv_Row_Moved = hv_Row_Moved + 1;
+        TransRegion();
+        break;
+    case MODEL_MOVE_LEFT:
+        if(25 == DelayTime)
+        {
+            DelayTime--;
+        }
+        else if(DelayTime > 0)
+        {
+            DelayTime--;
+            break;
+        }
+        hv_Column_Moved = hv_Column_Moved - 1;
+        TransRegion();
+        break;
+    case MODEL_MOVE_RIGHT:
+        if(25 == DelayTime)
+        {
+            DelayTime--;
+        }
+        else if(DelayTime > 0)
+        {
+            DelayTime--;
+            break;
+        }
+        hv_Column_Moved = hv_Column_Moved + 1;
+        TransRegion();
+        break;
+    default :break;
+    }
+}
+
+bool ModelSetDialog::eventFilter(QObject* obj,QEvent *event)
+{
+    static bool isTouched = false;
+    switch (event->type()) {
+    case QEvent::TouchBegin:
+        isTouched = true;
+        if(obj == ui->pushButton_ModelDown)
+        {
+            Operation = MODEL_MOVE_DOWN;
+        }
+        else if(obj == ui->pushButton_ModelLeft)
+        {
+            Operation = MODEL_MOVE_LEFT;
+        }
+        else if(obj == ui->pushButton_ModelRight)
+        {
+            Operation = MODEL_MOVE_RIGHT;
+        }
+        else if(obj == ui->pushButton_ModelUp)
+        {
+            Operation = MODEL_MOVE_UP;
+        }
+        else if(obj == ui->pushButton_RotateAntiClock)
+        {
+            Operation = ROTATE_ANTICLOCK;
+        }
+        else if(obj == ui->pushButton_RotateClock)
+        {
+            Operation = ROTATE_CLOCK;
+        }
+        break;
+    case QEvent::MouseButtonPress:
+        if(isTouched) break;
+        if(obj == ui->pushButton_ModelDown)
+        {
+            Operation = MODEL_MOVE_DOWN;
+        }
+        else if(obj == ui->pushButton_ModelLeft)
+        {
+            Operation = MODEL_MOVE_LEFT;
+        }
+        else if(obj == ui->pushButton_ModelRight)
+        {
+            Operation = MODEL_MOVE_RIGHT;
+        }
+        else if(obj == ui->pushButton_ModelUp)
+        {
+            Operation = MODEL_MOVE_UP;
+        }
+        else if(obj == ui->pushButton_RotateAntiClock)
+        {
+            Operation = ROTATE_ANTICLOCK;
+        }
+        else if(obj == ui->pushButton_RotateClock)
+        {
+            Operation = ROTATE_CLOCK;
+        }
+        break;
+        break;
+    case QEvent::TouchEnd:
+    case QEvent::MouseButtonRelease:
+        if(obj == ui->pushButton_MirrorLR)
+        {
+            Operation = NOP;
+        }
+        else if(obj == ui->pushButton_MirrorUD)
+        {
+            Operation = NOP;
+        }
+        else if(obj == ui->pushButton_ModelDown)
+        {
+            Operation = NOP;
+        }
+        else if(obj == ui->pushButton_ModelLeft)
+        {
+            Operation = NOP;
+        }
+        else if(obj == ui->pushButton_ModelRight)
+        {
+            Operation = NOP;
+        }
+        else if(obj == ui->pushButton_ModelUp)
+        {
+            Operation = NOP;
+        }
+        else if(obj == ui->pushButton_RotateAntiClock)
+        {
+            Operation = NOP;
+        }
+        else if(obj == ui->pushButton_RotateClock)
+        {
+            Operation = NOP;
+        }
+
+        isTouched = false;
+        break;
+    default:
+        break;
+    }
+
+    return QDialog::eventFilter(obj,event);
+}
+
 
 ModelSetDialog::~ModelSetDialog()
 {
@@ -319,4 +606,47 @@ void ModelSetDialog::on_pushButton_Grab_clicked()
 void ModelSetDialog::on_pushButton_OSK_clicked()
 {
 
+}
+
+void ModelSetDialog::on_pushButton_CopyStart_clicked()
+{
+    try{
+        HalconCpp::SetCheck("~give_error");
+        HalconCpp::SetColor(Mediator::GetIns()->ModelDisp,"yellow");
+         HalconCpp::SetDraw(Mediator::GetIns()->ModelDisp,"fill");
+         Excv::h_disp_obj(Mediator::GetIns()->HalconImage,Mediator::GetIns()->ModelDisp);
+        Threshold(Mediator::GetIns()->HalconImage, &ho_binImage, 128, 255);
+        Connection(ho_binImage, &ho_Connections);
+        SelectShapeStd(ho_Connections, &ho_DestRegions, "max_area", 0.6);
+        AreaCenter(ho_DestRegions, &hv_Area, &hv_Row, &hv_Column);
+        HalconCpp::DispObj(ho_DestRegions,Mediator::GetIns()->ModelDisp);
+        hv_phi = 0;
+        hv_Column_Moved = hv_Row_Moved = 0;
+        MirrorX = false; MirrorY = false;
+    }catch(HalconCpp::HException except)
+    {
+        HTuple ExceptionMessage;
+        except.ToHTuple(&ExceptionMessage);
+        SetTposition(Mediator::GetIns()->ModelDisp, 20, 21);
+        WriteString(Mediator::GetIns()->ModelDisp, ExceptionMessage);
+    }
+}
+
+void ModelSetDialog::on_pushButton_MirrorLR_clicked()
+{
+    if(MirrorX) MirrorX = false;
+    else MirrorX = true;
+    TransRegion();
+}
+
+void ModelSetDialog::on_pushButton_MirrorUD_clicked()
+{
+    if(MirrorY) MirrorY = false;
+    else MirrorY = true;
+    TransRegion();
+}
+
+void ModelSetDialog::on_pushButton_SaveImage_2_clicked()
+{
+    TransRegion(true);
 }
