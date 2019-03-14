@@ -127,7 +127,6 @@ void SettingDialog::on_pushButton_SavePara_clicked()
 {
     //初始化界面文字
 
-
     X_DIS_PULS_RATIO = ui->lineEdit_XAxisDisPerPls->text().toDouble();
 
     Y_DIS_PULS_RATIO = ui->lineEdit_YAxisDisPerPls->text().toDouble();

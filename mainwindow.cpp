@@ -55,7 +55,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->pushButton_Left->installEventFilter(this);
     ui->pushButton_Right->setAttribute(Qt::WA_AcceptTouchEvents);
     ui->pushButton_Right->installEventFilter(this);
-
     int nWndWidth = ui->widget->width();
     int nWndHeight= ui->widget->height();
     HalconCpp::SetCheck("~father");
@@ -65,6 +64,11 @@ MainWindow::MainWindow(QWidget *parent) :
     Mediator::GetIns()->show_StartButton = show_State_Ex;
     Mediator::GetIns()->show_Counter = show_counter;
     show_counter();
+}
+
+int MainWindow::GetCounter()
+{
+    return counter;
 }
 
 void MainWindow::Init(const char* pName)
@@ -330,4 +334,9 @@ void MainWindow::on_pushButton_Press_clicked()
 void MainWindow::on_pushButton_Seperate_clicked()
 {
     Mediator::GetIns()->MachineOp(MACHINE_SEPRA);
+}
+
+void MainWindow::on_pushButton_Min_clicked()
+{
+    showMinimized();
 }

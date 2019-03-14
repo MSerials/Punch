@@ -17,6 +17,7 @@ class MainWindow : public QMainWindow
 public:
     void ShowCounter(QString str);
     explicit MainWindow(QWidget *parent = 0);
+    int GetCounter();
     void Init(const char * program_name = "");
     static unsigned int CheckVersion(void*);
     ~MainWindow();
@@ -54,6 +55,8 @@ private slots:
      void on_pushButton_Press_clicked();
 
      void on_pushButton_Seperate_clicked();
+
+     void on_pushButton_Min_clicked();
 
 private:
     std::string ProgmaName;

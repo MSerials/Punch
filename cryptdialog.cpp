@@ -68,7 +68,7 @@ bool CryptDialog::Init(){
 
 
     #ifdef NO_MOTION
-        printf_s("机器号码:%s  字节长度%d  加密后 %s  加密后2 %s\n",Board,StrLen,FirstCyrpted.c_str(), SecondCyrpted.c_str());
+        printf_s("机器号码:%s  字节长度%d  加密后 %s  加密后2 %s\n",Board.c_str(),StrLen,FirstCyrpted.c_str(), SecondCyrpted.c_str());
     #endif
         long long stamp;
         QString Serials;
@@ -102,7 +102,7 @@ bool CryptDialog::Init(){
         else
         {
     #ifdef TEST
-            std::cout << "cal " << SecondCyrpted.c_str() << " in reg is " << (char*)(LPCSTR)(CStringA)Serials << std::endl;
+            std::cout << "cal " << SecondCyrpted.c_str() << " in reg is " << Serials.toLocal8Bit().data() << std::endl;
 
     #endif
             QMessageBox::information(NULL,"Tip",QString::fromLocal8Bit("验证码不对！"));

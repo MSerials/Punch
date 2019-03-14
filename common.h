@@ -8,8 +8,15 @@
 #if !defined(_____PUNCH_COMMON_20181014_____)
 #define _____PUNCH_COMMON_20181014_____
 
+
+//非全屏测试
 //#define SHOW
+
+
+//没有控制卡的测试
 //#define TEST
+
+//显示字符串
 //#define SHOW_CONSOLE
 
 #ifndef METHOD_SELECT

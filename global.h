@@ -26,18 +26,24 @@
 //1 1600x1200
 //2 1280x1024
 //3 1024x768
+
+#if 0
 #define MODE_INDEX      2
 #define IMAGE_WIDTH     1024
 #define IMAGE_HEIGHT    768
-
+#else
+#define MODE_INDEX      1
+#define IMAGE_WIDTH     1280
+#define IMAGE_HEIGHT    1024
+#endif
 
 #define ERROR_ADMIN_	-1
 #define ERROR_OK_		0
 #define ERROR_AUTHOR_	3
 #define ERROR_TIMEOUT_	4
 
-#define _VERSION       "20190212"
-#define __VERSION      L"20190122"
+#define _VERSION       "2019038"
+//#define __VERSION      L"20190122"
 
 class MEvent
 {
@@ -116,6 +122,7 @@ public:
     }
 
     static std::unordered_map<int,std::string> &LineMethod(){
+        //采用双锁检测才保证多线程无bug 不过这里无所谓
         static std::unordered_map<int,std::string> LM;
         static bool isOK = false;
         if(!isOK)
@@ -135,11 +142,13 @@ public:
     {
     QString cpu_id = "";
     QProcess p(0);
-    p.start("wmic BaseBoard get SerialNumber");
+    //p.start("wmic BaseBoard get SerialNumber");
+    p.start("wmic CPU get ProcessorID");
     p.waitForStarted();
     p.waitForFinished();
     cpu_id = QString::fromLocal8Bit(p.readAllStandardOutput());
-    cpu_id = cpu_id.remove("SerialNumber").trimmed();
+    //cpu_id = cpu_id.remove("SerialNumber").trimmed();
+    cpu_id = cpu_id.remove("ProcessorID").trimmed();
     return cpu_id;
     }
 

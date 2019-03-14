@@ -58,6 +58,8 @@ INCLUDEPATH +=  ../third_party/opencv3.4.0/include \
                 ../third_party/halcon12 \
                 ../third_party/halcon12/halconcpp
 
+INCLUDEPATH += /include/
+
 #LIBS += -L../third_party/opencv3.4.0/x64/vc14/lib -lopencv_world340
 
 #使用openmp进行并且处理
