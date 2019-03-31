@@ -96,8 +96,9 @@
 #define BOARD_DISTANCE                          Preference::GetIns()->prj->distance_to_border
 #define X_AXIS_LIMIT                            Preference::GetIns()->prj->X_Axis_Limit
 #define LINE_METHOD                             Preference::GetIns()->prj->Lines_Method
+#define PUNCH_LIMIT                             Preference::GetIns()->prj->Limit_Counter
+#define PUNCH_COUNTER                           Preference::GetIns()->prj->Current_Counter
 #define 右方向为原点
-
 
 
 
@@ -208,9 +209,9 @@ public:
             settings->setValue(str_img + "BORDER_DIS", distance_to_border);
             settings->setValue(str_img + "CAM_ANGLE", Camera_Angle);
             settings->setValue(str_img + "POS_ACC", Pos_Accurcy);
-
             settings->setValue(str_img + "LINESMETHOD", Lines_Method);
-
+            settings->setValue(str_img + "LIMITCOUNTER", Limit_Counter);
+            settings->setValue(str_img + "CURRENTCOUNTER", Current_Counter);
             settings->setValue(str_img + "VER", Version);
 		}
 
@@ -280,6 +281,8 @@ public:
             Camera_Angle = settings->value(str_img + "CAM_ANGLE", 0.0).toDouble();
             Pos_Accurcy = settings->value(str_img + "POS_ACC", 20.0).toDouble();
             Lines_Method = settings->value(str_img + "LINESMETHOD", 0).toInt();
+            Limit_Counter = settings->value(str_img + "LIMITCOUNTER", 0).toInt();
+            Current_Counter = settings->value(str_img + "CURRENTCOUNTER", 0).toInt();
             Version = settings->value(str_img + "VER", 0).toString();
 		}
 
@@ -307,14 +310,15 @@ public:
         double c2;
     };
 
-
+    int Limit_Counter = 0;
+    int Current_Counter = 0;
     //冲压模式选择
     int Lines_Method = 0;
     //IMAGE #define PARA_IMAGE			(0x1<<1)
     //图像y轴方向代表的像素距离
-    double yAxis_Ratio = 0.93;
+    double yAxis_Ratio = 0.6;
     //图像x轴方向代表的像素距离
-    double xAxis_Ratio = 0.93;
+    double xAxis_Ratio = 0.6;
 
     //一个脉冲代表的距离 mm/pul
     double yAxis_Distance_Ratio = 0.001;
@@ -346,6 +350,7 @@ public:
     int Press_Limit = -1;
     //IMAGE 检测的范围
     QString Model_Name = "";
+    QString DxfPath = "";
     _Rect Detect_ROI,Model_ROI;
 
 };

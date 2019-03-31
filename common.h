@@ -4,6 +4,25 @@
 #include <atomic>
 #include "opencv.hpp"
 
+#include <exception>
+using namespace std;
+
+#ifndef __EXCEPT__
+#define __EXCEPT__
+class MException : public exception
+{
+private:
+    std::string Tip;
+public:
+    MException(const char* str = "Unknown Error\n") {
+        Tip = std::string(str);
+    }
+
+    const char * what() const throw() {
+        return Tip.c_str();
+    }
+};
+#endif
 
 #if !defined(_____PUNCH_COMMON_20181014_____)
 #define _____PUNCH_COMMON_20181014_____
@@ -139,6 +158,10 @@ public:
 
     //传递给图像知道最后遍历到最后一排的参数，保证计算正确
     int Tale_Pix = 0;
+
+    //重复的宽度和高度，这个参数很明显知道是不是模具什么时候才重复
+    int Repeat_Width = 0;
+    int Repeat_Height = 0;
 
     //因为dll的限制，这个用于回调进行显示,参数含义分别是 mat cstatic pWnd 和 是否反转显示
     typedef void (__stdcall *DispMat)(cv::Mat, void*, bool);

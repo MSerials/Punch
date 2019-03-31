@@ -18,6 +18,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <QTimer>
 
 MainWindow *pMainWin = nullptr;
 int counter = 0;
@@ -28,6 +29,9 @@ void show_counter()
     if(nullptr != pMainWin)
         pMainWin->ShowCounter(str);
     counter++;
+    Preference::GetIns()->prj->WriteSettings();
+    if((counter > PUNCH_LIMIT) && (0 < PUNCH_LIMIT))
+        Mediator::GetIns()->MachineOp(MACHINE_STOP);
 }
 
 void MainWindow::ShowCounter(QString str)
@@ -55,6 +59,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->pushButton_Left->installEventFilter(this);
     ui->pushButton_Right->setAttribute(Qt::WA_AcceptTouchEvents);
     ui->pushButton_Right->installEventFilter(this);
+    ui->pushButton_Miner->setAttribute(Qt::WA_AcceptTouchEvents);
+    ui->pushButton_Miner->installEventFilter(this);
+    ui->pushButton_Plus->setAttribute(Qt::WA_AcceptTouchEvents);
+    ui->pushButton_Plus->installEventFilter(this);
+
     int nWndWidth = ui->widget->width();
     int nWndHeight= ui->widget->height();
     HalconCpp::SetCheck("~father");
@@ -63,7 +72,60 @@ MainWindow::MainWindow(QWidget *parent) :
     Mediator::GetIns()->UpdateHistory = UpdateHistoryInfo;
     Mediator::GetIns()->show_StartButton = show_State_Ex;
     Mediator::GetIns()->show_Counter = show_counter;
-    show_counter();
+
+
+    //启动定时器
+    QTimer *timer_io = new QTimer();
+    //设置定时器每个多少毫秒发送一个timeout()信号
+    timer_io->setInterval(23);
+    connect(timer_io, &QTimer::timeout, [=]() {this->OnTimer();});
+    timer_io->start();
+}
+
+void MainWindow::OnTimer()
+{
+    static int TickCounter = 0;
+    switch(Operation)
+    {
+    case NOP:
+        TickCounter = 0;
+        break;
+    case LIMIT_UP:
+        if(0==TickCounter){
+            PUNCH_LIMIT++;
+            QString LimitCounter = QString::fromLocal8Bit("冲压限次：")+QString::number(PUNCH_LIMIT);
+            ui->lineEdit_Limit->setText(LimitCounter);
+        }
+        else if(TickCounter>9){
+            if(TickCounter > 3000) TickCounter = 3000;
+            PUNCH_LIMIT += TickCounter;
+            QString LimitCounter = QString::fromLocal8Bit("冲压限次：")+QString::number(PUNCH_LIMIT);
+            ui->lineEdit_Limit->setText(LimitCounter);
+        }
+        TickCounter++;
+        break;
+    case LIMIT_DOWN:
+        if(PUNCH_LIMIT <= 0){
+        PUNCH_LIMIT = 0;
+        QString LimitCounter = QString::fromLocal8Bit("冲压限次：")+QString::number(PUNCH_LIMIT);
+        ui->lineEdit_Limit->setText(LimitCounter);
+        break;
+        }
+
+        if(0==TickCounter){
+            PUNCH_LIMIT--;
+            QString LimitCounter = QString::fromLocal8Bit("冲压限次：")+QString::number(PUNCH_LIMIT);
+            ui->lineEdit_Limit->setText(LimitCounter);
+        }
+        else if(TickCounter>9){
+            if(TickCounter > 3000) TickCounter = 3000;
+            PUNCH_LIMIT -= TickCounter;
+            QString LimitCounter = QString::fromLocal8Bit("冲压限次：")+QString::number(PUNCH_LIMIT);
+            ui->lineEdit_Limit->setText(LimitCounter);
+        }
+        TickCounter++;
+        break;
+    }
 }
 
 int MainWindow::GetCounter()
@@ -86,8 +148,7 @@ void MainWindow::Init(const char* pName)
     HANDLE m_hMutex  =  ::CreateMutexW(NULL, FALSE,  L"PUNCH_____2019.1.5" );
     //  检查错误代码
     if  (GetLastError()  ==  ERROR_ALREADY_EXISTS)  {
-        QMessageBox::warning(this,QString::fromLocal8Bit("Error"),QString::fromLocal8Bit("请勿多开程序!如果频繁出现，请重启电脑"));
-      //  如果已有互斥量存在则释放句柄并复位互斥量
+     QMessageBox::warning(this,QString::fromLocal8Bit("Error"),QString::fromLocal8Bit("请勿多开程序!如果频繁出现，请重启电脑"));
      CloseHandle(m_hMutex);
      m_hMutex  =  NULL;
      exit(0);
@@ -96,6 +157,8 @@ void MainWindow::Init(const char* pName)
 
     //初始化参数
     Preference::GetIns()->prj->SetFilePos(QString(PRJ_PATH));
+    //防止参数错误
+    if(X_AXIS_LIMIT>-200) X_AXIS_LIMIT = -200;
     using namespace cv;
     FileStorage fs2("Cabli.yml", FileStorage::READ);
     fs2["cameraMatrix"] >> Mediator::GetIns()->m_cameraMatrix;
@@ -112,6 +175,14 @@ void MainWindow::Init(const char* pName)
     std::ofstream file("ver.dat");
     file << _VERSION;
     file.close();
+
+
+
+    counter = PUNCH_COUNTER;
+    show_counter();
+
+    QString LimitCounter = QString::fromLocal8Bit("冲压限次：")+QString::number(PUNCH_LIMIT);
+    ui->lineEdit_Limit->setText(LimitCounter);
 
     (HANDLE)_beginthreadex(NULL, 0,CheckVersion, this, 0, NULL);
 }
@@ -198,6 +269,14 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         {
            Mediator::GetIns()->MachineOp(MOVE_RIGHT);
         }
+        else if(obj == ui->pushButton_Miner)
+        {
+            Operation = LIMIT_DOWN;
+        }
+        else if(obj==ui->pushButton_Plus)
+        {
+            Operation = LIMIT_UP;
+        }
         break;
     case QEvent::MouseButtonPress:
         if(isTouched) break;
@@ -217,12 +296,30 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         {
            Mediator::GetIns()->MachineOp(MOVE_RIGHT);
         }
+        else if(obj == ui->pushButton_Miner)
+        {
+            Operation = LIMIT_DOWN;
+        }
+        else if(obj==ui->pushButton_Plus)
+        {
+            Operation = LIMIT_UP;
+        }
         break;
     case QEvent::TouchEnd:
     case QEvent::MouseButtonRelease:
         if(obj == ui->pushButton_Up || obj == ui->pushButton_Down || obj == ui->pushButton_Left || obj == ui->pushButton_Right)
         {
             Mediator::GetIns()->MachineOp(MOVE_STOP);
+        }
+        else if(obj == ui->pushButton_Miner)
+        {
+            Operation = NOP;
+            Preference::GetIns()->prj->WriteSettings();
+        }
+        else if(obj==ui->pushButton_Plus)
+        {
+            Operation = NOP;
+            Preference::GetIns()->prj->WriteSettings();
         }
         isTouched = false;
         break;
@@ -262,6 +359,10 @@ void MainWindow::show_State()
 
 void MainWindow::on_pushButton_Run_clicked()
 {
+#ifdef NO_MOTION
+    static int counter = 2;
+    counter--;
+#endif
     if(RUN == (Mediator::GetIns()->GetState()&RUN))
     {
         Mediator::GetIns()->MachineOp(MACHINE_PAUSE);
@@ -270,6 +371,12 @@ void MainWindow::on_pushButton_Run_clicked()
         Mediator::GetIns()->MachineOp(MACHINE_START);
     }
     show_State();
+#ifdef NO_MOTION
+if(counter>0)
+{
+    Mediator::GetIns()->MachineOp(MACHINE_STOP);
+}
+#endif
 }
 
 void MainWindow::on_pushButton_Stop_2_clicked()
@@ -321,6 +428,28 @@ void MainWindow::on_pushButton_Punch_clicked()
 
 void MainWindow::on_pushButton_Stop_clicked()
 {
+   // this->setCursor(QCursor(QPixmap("d:/Users/Lux/Desktop/ProjectFile/ChongChuang/res/Chongchuang.png")));
+    /*
+    static cv::Mat image(30000,30000,CV_8UC3,cv::Scalar(255,234,0));
+    uchar *idata = image.data;
+    for(int h = 0;h<image.rows;h++)
+    {
+        for(int w = 0;w<image.cols;w++)
+        {
+            idata[w*3] = rand()%255;
+        }
+        idata += image.cols*3;
+    }
+
+     cv::imwrite("a.jpg",image);
+    HalconCpp::HObject hobj;
+    Excv::MatToHObj(image,hobj);
+    Excv::h_disp_obj(hobj,Mediator::GetIns()->MainWindowDispHd);
+
+
+
+
+*/
     printf("ProcessState is %d  PunchState is %d GetPointState is %d\n",Mediator::GetIns()->evt_Process.State(),Mediator::GetIns()->evt_Punch.State(),Mediator::GetIns()->evt_GetPoint.State());
 }
 

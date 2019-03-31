@@ -13,13 +13,24 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+    enum{
+        NOP,LIMIT_UP,LIMIT_DOWN
+    };
 
 public:
     void ShowCounter(QString str);
     explicit MainWindow(QWidget *parent = 0);
+
+    int Operation = NOP;
+
+    void OnTimer();
+
     int GetCounter();
+
     void Init(const char * program_name = "");
+
     static unsigned int CheckVersion(void*);
+
     ~MainWindow();
     static MainWindow* ThisWindow;
 private slots:

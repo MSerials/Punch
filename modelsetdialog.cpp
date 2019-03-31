@@ -31,15 +31,25 @@ static void __stdcall DispMatImage_Ex(cv::Mat InputArray, void * pWnd = nullptr,
 void ModelSetDialog::CamSnap()
 {
     printf("get image from camera\n");
+#ifdef NO_MOTION
+    QString fileName = QFileDialog::getOpenFileName(NULL,
+        tr("Open Image"), "",
+        tr("All Files (*)"));
+    static cv::Mat Image;// = cv::imread(fileName.toLocal8Bit().data());
+    Image = cv::imread(fileName.toLocal8Bit().data());
+    if(Image.empty())   return;
+    Snap_Image = Image.clone();
+    CvCvtColor(Image,Snap_Image,CV_BGR2GRAY);
+    cv::resize(Snap_Image, Image, cv::Size(IMAGE_WIDTH, IMAGE_HEIGHT), 0.0,0.0, cv::INTER_CUBIC);
+    //cv::resize(Snap_Image, __g::GetIns()->Image, cv::Size(IMAGE_WIDTH, IMAGE_HEIGHT), 0.0,0.0, cv::INTER_CUBIC);
+    MSerialsCamera::VoidImage() = Image.clone();
+#else
     //两张图片比较是否掉线
     cv::Mat Image_Try   = MSerialsCamera::GetMachineImage(MSerialsCamera::IMAGE_FLIPED,CAMERA_ANGLE).clone();
     Snap_Image       = MSerialsCamera::GetMachineImage(MSerialsCamera::IMAGE_FLIPED,CAMERA_ANGLE).clone();
-    if(true == MSerialsCamera::isEqual(Snap_Image,Image_Try))
-    {
-#if 1
-        for (int i = 0;;i++)
-        {
-            Sleep(100);
+    if(true == MSerialsCamera::isEqual(Snap_Image,Image_Try)){
+        for (int i = 0;;i++){
+            Sleep(30);
             if(MSerialsCamera::init_camera() > 0) {
                     Snap_Image       = MSerialsCamera::GetMachineImage(MSerialsCamera::IMAGE_FLIPED,CAMERA_ANGLE).clone();
                     break;
@@ -49,7 +59,8 @@ void ModelSetDialog::CamSnap()
                 QString fileName = QFileDialog::getOpenFileName(NULL,
                     tr("Open Image"), "",
                     tr("All Files (*)"));
-                cv::Mat Image = cv::imread(fileName.toLocal8Bit().data());
+                static cv::Mat Image;// = cv::imread(fileName.toLocal8Bit().data());
+                Image = cv::imread(fileName.toLocal8Bit().data());
                 if(Image.empty())   return;
                 Snap_Image = Image.clone();
                 CvCvtColor(Image,Snap_Image,CV_BGR2GRAY);
@@ -58,12 +69,12 @@ void ModelSetDialog::CamSnap()
                 break;
             }
         }
-#endif
     }
+#endif
     try{
     HalconCpp::HObject Hobj,ROI;
     GenRectangle1(&ROI,CHECK_R1,CHECK_C1,CHECK_R2,CHECK_C2);
-    Excv::MatToHObj(Snap_Image,Hobj);
+    Excv::MatToHObj(MSerialsCamera::VoidImage(),Hobj);
     Excv::h_disp_obj(Hobj,Mediator::GetIns()->ModelDisp);
     SetDraw(Mediator::GetIns()->ModelDisp,"margin");
     SetColor(Mediator::GetIns()->ModelDisp,"yellow");
@@ -226,9 +237,7 @@ ModelSetDialog::ModelSetDialog(QWidget *parent) :
      QTimer *timer_io = new QTimer();
      //设置定时器每个多少毫秒发送一个timeout()信号
      timer_io->setInterval(20);
-     connect(timer_io, &QTimer::timeout, [=]() {
-         this->OnTimer();
-     });
+     connect(timer_io, &QTimer::timeout, [=]() {this->OnTimer();});
      timer_io->start();
 }
 

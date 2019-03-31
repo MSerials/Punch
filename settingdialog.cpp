@@ -85,7 +85,13 @@ ui->lineEdit_BoardModelDistance->setText(QString::number(static_cast<int>(BOARD_
 
 ui->lineEdit_ModelGap->setText(QString::number(static_cast<int>(MODEL_GAP)));
 
-ui->lineEdit_DistanceLeftToPunch->setText(QString::number(POS_ACCURCY));
+
+
+cv::Point2d mmDis(0,0);
+cv::Point plsDis(POS_ACCURCY,POS_ACCURCY);
+Excv::pls_to_mm(plsDis,mmDis);
+ui->lineEdit_DistanceLeftToPunch->setText(QString::number(mmDis.x));
+//ui->lineEdit_DistanceLeftToPunch->setText(QString::number(POS_ACCURCY));
 
 ui->lineEdit_CamAngle->setText(QString::number(CAMERA_ANGLE,'g',8));
 
@@ -149,7 +155,14 @@ void SettingDialog::on_pushButton_SavePara_clicked()
 
     MODEL_GAP = ui->lineEdit_ModelGap->text().toDouble();
 
-    POS_ACCURCY = ui->lineEdit_DistanceLeftToPunch->text().toDouble();
+
+    double mm_dis = ui->lineEdit_DistanceLeftToPunch->text().toDouble();
+    cv::Point2d mmDis(mm_dis,mm_dis);
+    cv::Point plsDis(0,0);
+    Excv::mm_to_pls(mmDis,plsDis);
+    POS_ACCURCY = plsDis.x;
+    //POS_ACCURCY = ui->lineEdit_DistanceLeftToPunch->text().toDouble();
+
 
     CAMERA_ANGLE = ui->lineEdit_CamAngle->text().toDouble();
 
@@ -247,7 +260,7 @@ unsigned int __stdcall CabliCamera(void * pThis)
         {
             HalconCpp::SetTposition(Mediator::GetIns()->SetDispHd,10,0);
             HalconCpp::SetColor(Mediator::GetIns()->SetDispHd,"green");
-            HalconCpp::WriteString(Mediator::GetIns()->SetDispHd,"标定完毕");
+            HalconCpp::WriteString(Mediator::GetIns()->SetDispHd,"标定完毕,软件重启后载入标定数据");
         }
     }catch(cv::Exception ex)
     {

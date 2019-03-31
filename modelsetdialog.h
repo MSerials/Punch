@@ -76,6 +76,8 @@ private slots:
 
     void on_pushButton_SaveImage_2_clicked();
 
+  //  void on_pushButton_Snap_clicked();
+
 private:
     Ui::ModelSetDialog *ui;
 };

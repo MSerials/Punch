@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <iostream>
 #include "opencv.hpp"
+#include <opencv2\imgproc\types_c.h>
 #include "global.h"
 #include "../../MSerialsCamera/MSerialsCam.h"
 
@@ -8,12 +9,36 @@
 #ifndef CAMERAS_H
 #define CAMERAS_H
 
+class __g{
+private:
+    __g(){printf("sss\n");}
+public:
+    static __g * GetIns(){static __g gg; return & gg;}
+#ifdef NO_MOTION
+
+#else
+        cv::Mat Image = cv::Mat(IMAGE_HEIGHT,IMAGE_WIDTH,CV_8UC1,cv::Scalar(220,220,220));
+#endif
+};
+
 
 namespace MSerialsCamera {
 
 enum{
     IMAGE_ORIGIN = 0, IMAGE_FLIPED = 1
 };
+
+class Si
+{
+private:
+    Si(){printf("init Si\n");}
+public:
+    static Si* GetIns(){static Si si; return& si;}
+
+    cv::Mat map1, map2;        bool ToRemap = false;
+    cv::Mat Image = cv::Mat(IMAGE_HEIGHT,IMAGE_WIDTH,CV_8UC1,cv::Scalar(20,20,20));
+};
+
     static int number = 0;
 
     static int init_camera()
@@ -69,15 +94,11 @@ enum{
         }
     }
 
+    //static cv::Mat TmpImage = cv::Mat(IMAGE_HEIGHT,IMAGE_WIDTH,CV_8UC1,cv::Scalar(250,20,20));
 
     static cv::Mat & VoidImage()
     {
-#ifdef NO_MOTION
-        static cv::Mat Image = cv::Mat(IMAGE_HEIGHT,IMAGE_WIDTH,CV_8UC1,cv::Scalar(20,20,20));
-#else
-        static cv::Mat Image = cv::Mat(IMAGE_HEIGHT,IMAGE_WIDTH,CV_8UC1,cv::Scalar(220,220,220));
-#endif
-        return Image;
+        return Si::GetIns()->Image;
     }
 
     static bool isEqual(cv::Mat &a, cv::Mat &b)
@@ -99,15 +120,7 @@ enum{
     }
 
 
-    class Si
-    {
-    private:
-        Si(){};
-    public:
-        static Si* GetIns(){static Si si; return& si;}
 
-        cv::Mat map1, map2;        bool ToRemap = false;
-    };
 
 
     static cv::Mat & GetMachineImage(int sel, double cam_angle =0.0,int Delay = 0, cv::Mat m_cameraMatrix = cv::Mat(), cv::Mat m_distCoeffs = cv::Mat()) {
@@ -148,7 +161,6 @@ enum{
                 initUndistortRectifyMap(m_cameraMatrix, m_distCoeffs, Mat(),
                     getOptimalNewCameraMatrix(m_cameraMatrix, m_distCoeffs, imageSize, 1, newImageSize, 0), newImageSize, CV_16SC2, Si::GetIns()->map1, Si::GetIns()->map2);
                 Si::GetIns()->ToRemap = true;
-
                 std::cout << "可以映射了" << std::endl;
             }
 

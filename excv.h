@@ -1,11 +1,12 @@
 ﻿#ifndef EXCV_H
 #define EXCV_H
 #include "opencv.hpp"
+#include <opencv2\imgproc\types_c.h>
 #include "HalconCpp.h"
 #include <vector>
 #include <QDateTime>
 #include "preferences.h"
-#
+
 
 namespace Excv {
 

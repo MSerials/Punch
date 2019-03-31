@@ -52,9 +52,8 @@ FORMS += \
     cryptdialog.ui
 
 
-INCLUDEPATH +=  ../third_party/opencv3.4.0/include \
-                ../third_party/opencv3.4.0/include/opencv \
-                ../third_party/opencv3.4.0/include/opencv2 \
+INCLUDEPATH +=  ../third_party/opencv4.0.1/include \
+                ../third_party/opencv4.0.1/include/opencv2 \
                 ../third_party/halcon12 \
                 ../third_party/halcon12/halconcpp
 
@@ -65,7 +64,7 @@ INCLUDEPATH += /include/
 #使用openmp进行并且处理
 QMAKE_CXXFLAGS+=/openmp
 
-#CONFIG += console
+CONFIG += console
 
 RC_FILE += app.rc
 #DISTFILES += \

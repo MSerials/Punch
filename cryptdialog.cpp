@@ -66,9 +66,8 @@ bool CryptDialog::Init(){
             SecondCyrpted += TmpEd;
         }
 
-
     #ifdef NO_MOTION
-        printf_s("机器号码:%s  字节长度%d  加密后 %s  加密后2 %s\n",Board.c_str(),StrLen,FirstCyrpted.c_str(), SecondCyrpted.c_str());
+        printf_s("机器号码:%s  字节长度%zd  加密后 %s  加密后2 %s\n",Board.c_str(),StrLen,FirstCyrpted.c_str(), SecondCyrpted.c_str());
     #endif
         long long stamp;
         QString Serials;

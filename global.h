@@ -14,7 +14,6 @@
 #include <QDir>
 #include <unordered_map>
 
-
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
@@ -42,8 +41,7 @@
 #define ERROR_AUTHOR_	3
 #define ERROR_TIMEOUT_	4
 
-#define _VERSION       "2019038"
-//#define __VERSION      L"20190122"
+#define _VERSION       "20190326"
 
 class MEvent
 {
@@ -68,7 +66,7 @@ class _global{
 public:
     _global(){
         LineMethod()[LINES_HORIZONTAL_AI] = "智能横向排列";
-        LineMethod()[LINES_HORIZONTAL] = "横向排列";
+        LineMethod()[LINES_HORIZONTAL] = "圆形横向排列";
         LineMethod()[LINES_VERTICAL_AI] = "智能纵向排列";
         LineMethod()[LINES_VERTICAL] = "纵向排列";
         LineMethod()[DOUBLE_HORIZONTAL] = "左右双面";
@@ -129,7 +127,7 @@ public:
         {
             isOK = true;
             LineMethod()[LINES_HORIZONTAL_AI] = "智能横向排列";
-            LineMethod()[LINES_HORIZONTAL] = "横向排列";
+            LineMethod()[LINES_HORIZONTAL] = "圆形横向排列";
             LineMethod()[LINES_VERTICAL_AI] = "智能纵向排列";
             LineMethod()[LINES_VERTICAL] = "纵向排列";
             LineMethod()[DOUBLE_HORIZONTAL] = "左右双面";

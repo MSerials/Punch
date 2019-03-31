@@ -18,10 +18,7 @@ public:
     bool Init();
 private slots:
     void on_pushButton_2_clicked();
-    //void closeEvent(QCloseEvent *event);
-
     void on_pushButton_clicked();
-
 private:
     Ui::CryptDialog *ui;
 };
