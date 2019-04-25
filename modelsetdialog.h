@@ -78,6 +78,10 @@ private slots:
 
   //  void on_pushButton_Snap_clicked();
 
+  //  void on_pushButton_GetModel_clicked();
+
+
+
 private:
     Ui::ModelSetDialog *ui;
 };

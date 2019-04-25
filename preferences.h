@@ -32,7 +32,7 @@
 #define MASK_METHOD
 
 
-#define __VERSION__	"2018.9.4"
+#define __VERSION__	_VERSION
 #define __VENDOR__	"FuryAI"
 
 
@@ -64,13 +64,11 @@
 #define OFF  0
 #endif
 
+
+#define CAMERAMODE                              0
+#define DIGITALMODE                             1
 #define X_RATIO                                 Preference::GetIns()->prj->xAxis_Ratio
 #define Y_RATIO                                 Preference::GetIns()->prj->yAxis_Ratio
-//X轴世界坐标误差的精度
-#define X_AXIS_PUNCH_PRECISION				(X_RATIO*1.2)
-//Y轴世界坐标误差的精度
-#define Y_AXIS_PUNCH_PRECISION				(Y_RATIO*1.2)
-
 #define X_DIS_PULS_RATIO                        Preference::GetIns()->prj->xAxis_Distance_Ratio
 #define Y_DIS_PULS_RATIO                        Preference::GetIns()->prj->yAxis_Distance_Ratio
 #define X_CAM_DISTANCE                          Preference::GetIns()->prj->xAxis_cam_dis
@@ -98,26 +96,33 @@
 #define LINE_METHOD                             Preference::GetIns()->prj->Lines_Method
 #define PUNCH_LIMIT                             Preference::GetIns()->prj->Limit_Counter
 #define PUNCH_COUNTER                           Preference::GetIns()->prj->Current_Counter
-#define 右方向为原点
+#define DXFPATH                                 Preference::GetIns()->prj->DxfPath
+#define PUNCHMODE                               Preference::GetIns()->prj->ModeSelect
+#define MODELD                                  Preference::GetIns()->prj->Model_Diameter
+#define MODELW                                  Preference::GetIns()->prj->Model_Width
+#define MODELH                                  Preference::GetIns()->prj->Model_Height
+#define DXFWL                                   Preference::GetIns()->prj->DxfWLower
+#define DXFWU                                   Preference::GetIns()->prj->DxfWUpper
+#define DXFHL                                   Preference::GetIns()->prj->DxfHLower
+#define DXFHU                                   Preference::GetIns()->prj->DxfHUpper
+#define PRJSAVE                                 Preference::GetIns()->prj->WriteSettings();
+#define 左方向为原点                              Preference::GetIns()->prj->OriginIsLeft
 
 
-
+//X轴世界坐标误差的精度
+//#define X_AXIS_PUNCH_PRECISION                  (X_RATIO*1.2)
+//Y轴世界坐标误差的精度
+//#define Y_AXIS_PUNCH_PRECISION                  (Y_RATIO*1.2)
 
 
 /*
-	初始化文件，如果存在文件会自动读取，否则保存
-	//系统配置文件
-	Preference::GetIns()->sys->SetFilePos(QString("sys.ini"));
-	//项目配置文件
-	QString Path = Preference::GetIns()->sys->Project_Name + "/prj.ini";
-
-	Preference::GetIns()->prj->SetFilePos(Path);
-	
-	//修改参数
-	Preference::GetIns()->prj->isNGSnap = 1;
-
-	//保存文件
-	Preference::GetIns()->prj->WriteSettings(PARA_ALL);
+请配合 Ini类文件使用
+使用方法，在初始化地方如下例子即可
+//系统配置文件
+Preference::GetIns()->sys->SetFilePos(QString("sys.ini"));
+//项目配置文件
+QString Path = Preference::GetIns()->sys->Project_Name + "/prj.ini";
+Preference::GetIns()->prj->SetFilePos(Path);
 */
 
 class Ini
@@ -180,23 +185,27 @@ public:
 		if (SEL & PARA_IMAGE)
 		{
             settings->setValue(str_img + "Model_Name", Model_Name);
+            settings->setValue(str_img + "DXFPATH", DxfPath);
+            settings->setValue(str_img + "MODESEL", ModeSelect);
+            settings->setValue(str_img + "MODELDIAMETER", Model_Diameter);
+            settings->setValue(str_img + "MODELWIDTH", Model_Width);
+            settings->setValue(str_img + "MODELHEIGHT", Model_Height);
+            settings->setValue(str_img + "DXFWL", DxfWLower);
+            settings->setValue(str_img + "DXFWU", DxfWUpper);
+            settings->setValue(str_img + "DXFHL", DxfHLower);
+            settings->setValue(str_img + "DXFHU", DxfHUpper);
             settings->setValue(str_img + "ROIR1", Detect_ROI.r1);
             settings->setValue(str_img + "ROIC1", Detect_ROI.c1);
             settings->setValue(str_img + "ROIR2", Detect_ROI.r2);
             settings->setValue(str_img + "ROIC2", Detect_ROI.c2);
-
             settings->setValue(str_img + "MROIR1", Model_ROI.r1);
             settings->setValue(str_img + "MROIC1", Model_ROI.c1);
             settings->setValue(str_img + "MROIR2", Model_ROI.r2);
             settings->setValue(str_img + "MROIC2", Model_ROI.c2);
-
             settings->setValue(str_img + "XRATIO", xAxis_Distance_Ratio);
             settings->setValue(str_img + "YRATIO", yAxis_Distance_Ratio);
-
             settings->setValue(str_img + "XAXISPIXRATIO", xAxis_Ratio);
             settings->setValue(str_img + "YAXISPIXRATIO", yAxis_Ratio);
-
-            //单位不同一个是mm 一个是脉冲，脉冲的精度要高一些，优先判断
             settings->setValue(str_img + "XAXISCAMDIS", xAxis_cam_dis);
             settings->setValue(str_img + "YAXISCAMDIS", yAxis_cam_dis);
             settings->setValue(str_img + "X_CAM_DISTANC_PLS", xAxis_cam_distance_pls);
@@ -210,6 +219,7 @@ public:
             settings->setValue(str_img + "CAM_ANGLE", Camera_Angle);
             settings->setValue(str_img + "POS_ACC", Pos_Accurcy);
             settings->setValue(str_img + "LINESMETHOD", Lines_Method);
+            settings->setValue(str_img + "ORGLEFT", OriginIsLeft);
             settings->setValue(str_img + "LIMITCOUNTER", Limit_Counter);
             settings->setValue(str_img + "CURRENTCOUNTER", Current_Counter);
             settings->setValue(str_img + "VER", Version);
@@ -250,37 +260,41 @@ public:
 		if (SEL & PARA_IMAGE)
 		{
             Model_Name = settings->value(str_img + "Model_Name").toString();
+            DxfPath = settings->value(str_img + "DXFPATH").toString();
+            ModeSelect = settings->value(str_img + "MODESEL").toInt();
+            Model_Diameter = settings->value(str_img + "MODELDIAMETER",37.2).toDouble();
+            Model_Width = settings->value(str_img + "MODELWIDTH",30).toDouble();
+            Model_Height = settings->value(str_img + "MODELHEIGHT",20).toDouble();
+            DxfWLower = settings->value(str_img + "DXFWL",1).toDouble();
+            DxfWUpper = settings->value(str_img + "DXFWU",100).toDouble();
+            DxfHLower = settings->value(str_img + "DXFHL",1).toDouble();
+            DxfHUpper = settings->value(str_img + "DXFHU",100).toDouble();
             Detect_ROI.r1 = settings->value(str_img + "ROIR1",0).toDouble();
             Detect_ROI.c1 = settings->value(str_img + "ROIC1",0).toDouble();
             Detect_ROI.r2 = settings->value(str_img + "ROIR2",0).toDouble();
             Detect_ROI.c2 = settings->value(str_img + "ROIC2",0).toDouble();
-
             Model_ROI.r1 = settings->value(str_img + "MROIR1",0).toDouble();
             Model_ROI.c1 = settings->value(str_img + "MROIC1",0).toDouble();
             Model_ROI.r2 = settings->value(str_img + "MROIR2",0).toDouble();
             Model_ROI.c2 = settings->value(str_img + "MROIC2",0).toDouble();
-
             xAxis_Distance_Ratio = settings->value(str_img + "XRATIO",0.001).toDouble();
             yAxis_Distance_Ratio = settings->value(str_img + "YRATIO",0.001).toDouble();
-
             xAxis_Ratio = settings->value(str_img + "XAXISPIXRATIO",0.822).toDouble();
             yAxis_Ratio = settings->value(str_img + "YAXISPIXRATIO",0.822).toDouble();
-
-            //单位不同一个是mm 一个是脉冲，脉冲的精度要高一些，优先判断
             xAxis_cam_dis = settings->value(str_img + "XAXISCAMDIS",0).toDouble();
             yAxis_cam_dis = settings->value(str_img + "YAXISCAMDIS",0).toDouble();
             xAxis_cam_distance_pls = settings->value(str_img + "X_CAM_DISTANC_PLS",0).toDouble();
             yAxis_cam_distance_pls = settings->value(str_img + "Y_CAM_DISTANC_PLS",0).toDouble();
             X_Axis_Limit = settings->value(str_img + "XAXISLMT", -200).toInt();
-            //xAxis_Limit = settings->value(str_img + "XAISLIMIT", - 200).toInt();
             xAxis_Speed = settings->value(str_img + "XSPD",3000000).toInt();
             yAxis_Speed = settings->value(str_img + "YSPD",8000000).toInt();
             threshold_value = settings->value(str_img + "THRES_VAL",180).toDouble();
             distance_object = settings->value(str_img + "OBJ_DIS",0).toDouble();
             distance_to_border = settings->value(str_img + "BORDER_DIS", 3).toInt();
             Camera_Angle = settings->value(str_img + "CAM_ANGLE", 0.0).toDouble();
-            Pos_Accurcy = settings->value(str_img + "POS_ACC", 20.0).toDouble();
+            Pos_Accurcy = settings->value(str_img + "POS_ACC", 37.5).toDouble();
             Lines_Method = settings->value(str_img + "LINESMETHOD", 0).toInt();
+            OriginIsLeft = settings->value(str_img + "ORGLEFT", 0).toInt();
             Limit_Counter = settings->value(str_img + "LIMITCOUNTER", 0).toInt();
             Current_Counter = settings->value(str_img + "CURRENTCOUNTER", 0).toInt();
             Version = settings->value(str_img + "VER", 0).toString();
@@ -310,16 +324,30 @@ public:
         double c2;
     };
 
+    //数控还是视觉模式
+    int ModeSelect = 0;
+    //冲压限制
     int Limit_Counter = 0;
+    //已经冲压多少个
     int Current_Counter = 0;
-    //冲压模式选择
+    //视觉模式下排布选择
     int Lines_Method = 0;
-    //IMAGE #define PARA_IMAGE			(0x1<<1)
+    //根据要求更改的，保存下直径参数
+    double Model_Diameter = 35.0;
+    //根据要求更改的，保存下直径参数
+    double Model_Width = 20.0;
+    double Model_Height = 20.0;
+
+    double DxfWLower = 1;
+    double DxfWUpper = 100;
+    double DxfHLower = 1;
+    double DxfHUpper = 100;
+
+    int OriginIsLeft = 0;
     //图像y轴方向代表的像素距离
     double yAxis_Ratio = 0.6;
     //图像x轴方向代表的像素距离
     double xAxis_Ratio = 0.6;
-
     //一个脉冲代表的距离 mm/pul
     double yAxis_Distance_Ratio = 0.001;
     //x轴方向一个脉冲代表的距离
@@ -342,6 +370,7 @@ public:
     double distance_to_border = 3;
     //载入model的图片名
     QString Model = "";
+    //应该没用了
     QString Version = _VERSION;
     //还差20mm停止的时候就开始冲压
     double Pos_Accurcy = 20;
@@ -350,23 +379,13 @@ public:
     int Press_Limit = -1;
     //IMAGE 检测的范围
     QString Model_Name = "";
+    //数控模式下dxf文件的路径
     QString DxfPath = "";
     _Rect Detect_ROI,Model_ROI;
 
 };
 
-/*
-请配合 Ini类文件使用
 
-使用方法，在初始化地方如下例子即可
-//系统配置文件
-Preference::GetIns()->sys->SetFilePos(QString("sys.ini"));
-//项目配置文件
-QString Path = Preference::GetIns()->sys->Project_Name + "/prj.ini";
-Preference::GetIns()->prj->SetFilePos(Path);
-
-
-*/
 class Preference
 {
 public:

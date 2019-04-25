@@ -74,7 +74,7 @@ void ModelSetDialog::CamSnap()
     try{
     HalconCpp::HObject Hobj,ROI;
     GenRectangle1(&ROI,CHECK_R1,CHECK_C1,CHECK_R2,CHECK_C2);
-    Excv::MatToHObj(MSerialsCamera::VoidImage(),Hobj);
+    Excv::MatToHObj(Snap_Image,Hobj);
     Excv::h_disp_obj(Hobj,Mediator::GetIns()->ModelDisp);
     SetDraw(Mediator::GetIns()->ModelDisp,"margin");
     SetColor(Mediator::GetIns()->ModelDisp,"yellow");
@@ -123,14 +123,18 @@ ModelSetDialog::ModelSetDialog(QWidget *parent) :
 
 
     //bug??设计师的信号槽不能用了？
+
     connect(ui->pushButton_Snap,&QPushButton::clicked,[=](){CamSnap();});
     connect(ui->pushButton_OSK,&QPushButton::clicked,[=](){ QDesktopServices::openUrl(QUrl("osk.exe", QUrl::TolerantMode));});
     connect(ui->pushButton_CloseSet,&QPushButton::clicked,[=](){isGrab = false;close();});
-    ui->lineEdit_Di->setText(QString::number(35));
+
+    ui->lineEdit_Di->setText(QString::number(MODELD,'g',5));
     connect(ui->pushButton_GenCircle,&QPushButton::clicked,[=](){on_pushButton_GenCircle_clicked();});
-    ui->lineEdit_RectW->setText(QString::number(20));
-    ui->lineEdit_RectH->setText(QString::number(20));
+
+    ui->lineEdit_RectW->setText(QString::number(MODELW,'g',5));
+    ui->lineEdit_RectH->setText(QString::number(MODELH,'g',5));
     connect(ui->pushButton_GenRect,&QPushButton::clicked,[=](){on_pushButton_GenRect_clicked();});
+
     connect(ui->pushButton_GetModel,&QPushButton::clicked,[=](){QString fileName = QFileDialog::getOpenFileName(NULL,tr("Open Image"), "Model",tr("All Files (*)"));
         Mediator::GetIns()->Load_Model(fileName.toLocal8Bit().data(),Mediator::GetIns()->ModelDisp,true);
     });
@@ -535,6 +539,10 @@ void ModelSetDialog::on_pushButton_GenCircle_clicked()
     sprintf(model_name, "直径_%5.2fmm", Diameter);
     std::string _model_name = Excv::cv_write_image(Model, "Model", model_name);
     Mediator::GetIns()->Load_Model(_model_name,Mediator::GetIns()->ModelDisp);
+
+    MODELD = Diameter;
+    Preference::GetIns()->prj->WriteSettings();
+
 }
 
 void ModelSetDialog::on_pushButton_GenRect_clicked()
@@ -557,6 +565,10 @@ void ModelSetDialog::on_pushButton_GenRect_clicked()
     sprintf_s(model_name, "宽%5.2fmm-高%5.2fmm",w,h);
     std::string _model_name = Excv::cv_write_image(Model, "Model", model_name);
     Mediator::GetIns()->Load_Model(_model_name,Mediator::GetIns()->ModelDisp);
+
+    MODELW = w;
+    MODELH = h;
+    Preference::GetIns()->prj->WriteSettings();
 }
 
 
@@ -661,3 +673,5 @@ void ModelSetDialog::on_pushButton_SaveImage_2_clicked()
 {
     TransRegion(true);
 }
+
+

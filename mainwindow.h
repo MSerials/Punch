@@ -69,6 +69,10 @@ private slots:
 
      void on_pushButton_Min_clicked();
 
+     //void on_pushButton_NormalSet_clicked();
+
+     void on_pushButton_NormalSet_clicked();
+
 private:
     std::string ProgmaName;
     Ui::MainWindow *ui;

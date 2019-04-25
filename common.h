@@ -45,17 +45,20 @@ public:
 #define LINES_HORIZONTAL			1
 #define	LINES_VERTICAL_AI			2
 #define LINES_VERTICAL				3
-#define DOUBLE_HORIZONTAL			4
-#define DOUBLE_VERTICAL				5
-#define	LINES_VERTICAL_MARTIX		6
-#define LINES_HORIZONTAL_MARTIX		7
+#define LINES_HORIZONTAL_FILL       4
+#define DOUBLE_HORIZONTAL			5
+#define DOUBLE_VERTICAL				6
+#define	LINES_VERTICAL_MARTIX		7
+#define LINES_HORIZONTAL_MARTIX		8
 
 #endif
 
 
-#define PUNCH_VERSION														"18.11.0"
+#define PUNCH_VERSION														"19.04.10"
+#define ROI_MODEL_RATIO             2.0
 
 enum tagSystemState { STOP, PAUSE, RUN, EMSTOP, TESTING, GETTING_MODEL, GETTING_BACK };
+enum tagDealMethod {NORMAL, FINDHEADPIX, FINDTALEPIX};
 
 struct Control_Var {
 public:
@@ -65,7 +68,7 @@ public:
         image_threshold = 192.0;
     }
 
-    Control_Var(const Control_Var &Ctrl_Var) {
+    Control_Var(const Control_Var& Ctrl_Var) {
         system_state = Ctrl_Var.system_state;
         error_code = Ctrl_Var.error_code;
         Lines_Method = Ctrl_Var.Lines_Method;
@@ -97,9 +100,18 @@ public:
         MMessageBox = Ctrl_Var.MMessageBox;
         Buffer = Ctrl_Var.Buffer;
         error_infomation = Ctrl_Var.error_code;
+        //从图像中知道最前的一排点在什么地方，这样能够猜测前进多少像素
+        Header_Pix = Ctrl_Var.Header_Pix;
+        Header_Pix_Ctrl = Ctrl_Var.Header_Pix_Ctrl;
+        DealMethod = Ctrl_Var.DealMethod;
+        Tale_Pix_Ctrl = Ctrl_Var.Tale_Pix_Ctrl;
     }
 
     tagSystemState SystemState = tagSystemState::STOP;
+    //针对模具很大的情况来觉得行走的具体方案。
+    tagDealMethod DealMethod = tagDealMethod::NORMAL;
+    //信号同步使用，否则可能会和另一个线程打乱
+    tagDealMethod DealMethod_Ctrl = tagDealMethod::NORMAL;
     //系统暂停状态变量
     int system_state = 0;
 
@@ -135,8 +147,7 @@ public:
     //参数，获得的实际磨具位置,单位分是puls,和图像处理的得到的位置，单位是pix
     //2l 是64位的，能够存储更多的字节
     std::list<std::vector<cv::Point2l>> ModelsPostion;
-    //进行复用，在计算前变成模具位置占用图片的信息，在计算完毕后就是计算出来的模具位置信息。
-    std::list<std::vector<cv::Point>> Cal_ModelsPostion;
+    std::list<std::vector<cv::Point>> Cal_ModelsPostion, Tale_ModelsPostion;
 
     //当前Y轴心位置，用于记录暂停信息
     int CurrentYAxisPostion = 0, CurrentXAxisPostion = 0, MovingForwardPuls = 0;
@@ -156,8 +167,12 @@ public:
 
     int last_y_bottom_pos = -1;
 
+    //从图像中知道最前的一排点在什么地方，这样能够猜测前进多少像素
+    int Header_Pix = -1;
+    int Header_Pix_Ctrl = -1;
     //传递给图像知道最后遍历到最后一排的参数，保证计算正确
     int Tale_Pix = 0;
+    int Tale_Pix_Ctrl = 0;
 
     //重复的宽度和高度，这个参数很明显知道是不是模具什么时候才重复
     int Repeat_Width = 0;
@@ -180,9 +195,12 @@ public:
         if(!Buffer.empty()) Buffer.release();
         Cal_ModelsPostion.clear();
         DoubleContours.clear();
+        //从图像中知道最前的一排点在什么地方，这样能够猜测前进多少像素
+        Header_Pix = -1;
+        Header_Pix_Ctrl = -1;
+        Tale_Pix_Ctrl = 0;
     }
 };
-
 
 
 #endif

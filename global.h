@@ -41,7 +41,38 @@
 #define ERROR_AUTHOR_	3
 #define ERROR_TIMEOUT_	4
 
-#define _VERSION       "20190326"
+#define _VERSION       "20190410"
+
+//定义滤波时间间隔，因为冲床感应器不稳定，用时间去滤波
+#define     TIME_GAP    100
+
+//定义机器的状态
+#define     NoError         (0)
+#define     NOT_ORIGIN      (1)
+#define     XAXISALM        (1<<1)
+#define     YAXISALM        (1<<2)
+#define     RUN             (1<<3)
+#define     STOP            (1<<4)
+#define     PAUSE           (1<<5)
+#define     NO_CAMERA       (1<<6)
+#define     NO_MOTION_CARD  (1<<7)
+#define     ERROR_PUNCHING  (1<<8)
+#define     ORIGING         (1<<9)
+
+//操作按钮定义
+#define     MOVE_UP     (1)
+#define     MOVE_LEFT   (2)
+#define     MOVE_RIGHT  (3)
+#define     MOVE_DOWN   (4)
+#define     MOVE_STOP   (5)
+#define     MACHINE_START   (6)
+#define     MACHINE_PAUSE   (7)
+#define     MACHINE_STOP    (8)
+#define     MACHINE_ORIGIN  (9)
+#define     MACHINE_PUNCH   (10)
+#define     MACHINE_SEPRA   (11)
+
+
 
 class MEvent
 {
@@ -130,6 +161,7 @@ public:
             LineMethod()[LINES_HORIZONTAL] = "圆形横向排列";
             LineMethod()[LINES_VERTICAL_AI] = "智能纵向排列";
             LineMethod()[LINES_VERTICAL] = "纵向排列";
+
             LineMethod()[DOUBLE_HORIZONTAL] = "左右双面";
             LineMethod()[DOUBLE_VERTICAL] = "上下双面";
         }

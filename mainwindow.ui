@@ -365,6 +365,19 @@
      <string>-</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="pushButton_NormalSet">
+    <property name="geometry">
+     <rect>
+      <x>520</x>
+      <y>720</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>数控设置</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

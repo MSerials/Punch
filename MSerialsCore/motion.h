@@ -23,7 +23,8 @@ class motion
 
 public:
 	static motion * GetIns() { static motion _m; return &_m; }
-        int init() {
+        int init(int method = 0) {
+
 		//DMC_1380 *dmc_1380card = new DMC_1380(method);
 		//vc = new void_card();
 		Yanwei_IMCnet *yanwei_IMCnet = new Yanwei_IMCnet(method);

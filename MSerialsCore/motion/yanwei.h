@@ -4,6 +4,8 @@
 #include "motion_card.h"
 #include <vector>
 #include <string>
+#include <fstream>
+
 
 #include "../../../third_party/yanwei/inc/IMC_Def.h"
 #include "../../../third_party/yanwei/inc/IMCnet.h"
@@ -18,6 +20,7 @@
 
 class Yanwei_IMCnet:public motion_card{
 private:
+
 	int ErrorCode = 0;
 	std::string error_information;
 	int card_num = 0;
@@ -211,8 +214,18 @@ private:
 			//只使能0轴的限位
 			if(0 == axis)
 			{
-				short Value_ = (short)0x000A | (short)(1<<15);
-				status = SetParam16(m_handle, aioctrLoc, Value_, axis, SEL_IFIFO);	//��IO���üĴ���,�͵�ƽ��Ч
+                            short Value_ = 0;
+                                //默认为1 右方向
+                                if(!isNegLimit)
+                                {
+                                    Value_ = (short)0x000A | (short)(1<<14);
+                                }
+                                else
+                                {
+                                    Value_ = (short)0x000A  | short(1<<15);
+                                }
+
+                                status = SetParam16(m_handle, aioctrLoc, Value_, axis, SEL_IFIFO);	//��IO���üĴ���,�͵�ƽ��Ч
 			}
 			else
 				status = SetParam16(m_handle, aioctrLoc, (short)0x000A, axis, SEL_IFIFO);
@@ -272,6 +285,7 @@ public:
 	Yanwei_IMCnet(int Method = 0)
 		:error_information("")
 	{
+                isNegLimit = !Method;
 		InitVars();
 		Init();
 	}
@@ -404,7 +418,28 @@ public:
 		SetParam16(m_handle, clearLoc, -1, Axis, SEL_QFIFO);
 	}
 
-	void SetPosLimit(short Axis, long long Pos)
+
+        void SetLimit(short Axis, long long Pos , int sel)
+        {
+
+            if (m_handle == NULL)
+                    return;
+            //默认为0,也就是右方向
+            if(0!=sel)
+            {
+                SetParam32(m_handle, psoftlimLoc, Pos, Axis, SEL_QFIFO);
+            }
+            else
+            {
+                //右方向
+                SetParam32(m_handle, nsoftlimLoc, Pos, Axis, SEL_QFIFO);
+
+            }
+        }
+
+
+
+        void SetPosLimit(short Axis, long long Pos)
 	{
 		if (m_handle == NULL)
 			return;
@@ -412,13 +447,16 @@ public:
 		
 	}
 
+
+/*
+
 	void SetNegLimit(short Axis, long long Pos)
 	{
 		if (m_handle == NULL)
 			return;
 		SetParam32(m_handle, nsoftlimLoc, Pos, Axis, SEL_QFIFO);
 	}
-
+*/
 	void WriteOutput(uint32 bit, uint32 level) {
 		if (m_handle == NULL)
 			return;

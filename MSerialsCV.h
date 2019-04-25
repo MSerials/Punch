@@ -17,9 +17,9 @@
 
 CVDLL_API std::string CvGetVersion();
 //数控送料
-CVDLL_API HalconCpp::HObject & CvReadDxf(const char *fileName, int64 winHandle = 0);
-CVDLL_API void CvSetPara(int Minh = 1, int Maxh = 100, int Minw = 1, int Maxw = 100);
-CVDLL_API HalconCpp::HObject & CvReLoadPara(int64 winHandle = 0);
+//CVDLL_API HalconCpp::HObject & CvReadDxf(const char *fileName, int64 winHandle = 0);
+//CVDLL_API void CvSetPara(int Minh = 1, int Maxh = 100, int Minw = 1, int Maxw = 100);
+//CVDLL_API HalconCpp::HObject & CvReLoadPara(int64 winHandle = 0);
 
 CVDLL_API double CvSquareSize(cv::Mat mat, Control_Var & Ctrl_Var);																					//返回标定板对角线像素长度
 CVDLL_API double CvCabli(double corner_size, Control_Var & Ctrl_Var, std::string & error_info, double ThresHold = 60, std::string dir = "CABLI");	//进行标定

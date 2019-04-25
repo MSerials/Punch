@@ -19,9 +19,13 @@
 #include <iostream>
 #include <fstream>
 #include <QTimer>
+#include "normalcontroldialog.h"
 
 MainWindow *pMainWin = nullptr;
 int counter = 0;
+int oldCounter = 0;
+clock_t clk = clock();
+
 
 void show_counter()
 {
@@ -29,7 +33,16 @@ void show_counter()
     if(nullptr != pMainWin)
         pMainWin->ShowCounter(str);
     counter++;
-    Preference::GetIns()->prj->WriteSettings();
+
+    clock_t nclk = clock();
+    if((nclk - clk) > 10000){
+        clk = nclk;
+        PUNCH_COUNTER = counter;
+        Preference::GetIns()->prj->WriteSettings();
+    }
+
+
+
     if((counter > PUNCH_LIMIT) && (0 < PUNCH_LIMIT))
         Mediator::GetIns()->MachineOp(MACHINE_STOP);
 }
@@ -167,16 +180,56 @@ void MainWindow::Init(const char* pName)
     std::cout<<"畸变" << Mediator::GetIns()->m_distCoeffs<<std::endl;
 
     Mediator::GetIns()->UpdateMessage("启动程序");
-    //初始化相机
-    Mediator::GetIns()->Load_Model(Preference::GetIns()->prj->Model_Name.toLocal8Bit().toStdString().data(),Mediator::GetIns()->MainWindowDispHd,false);
+
+    MSerialsCamera::VoidImage();
+    HalconCpp::HObject hobj;
+    Excv::MatToHObj(MSerialsCamera::VoidImage(),hobj);
+
+    //载入模具图片
+    Mediator::GetIns()->SetDxfPara(DXFHL,DXFHU,DXFWL,DXFWU);
+    if(PUNCHMODE == CAMERAMODE)
+    {
+        try{
+            Mediator::GetIns()->Load_Dxf(Preference::GetIns()->prj->DxfPath.toLocal8Bit().toStdString().data(),Mediator::GetIns()->MainWindowDispHd,false);
+        }catch(MException &e)
+        {
+            printf(e.what());
+        }
+
+        DispObj(hobj,Mediator::GetIns()->MainWindowDispHd);
+
+        try{
+            Mediator::GetIns()->Load_Model(Preference::GetIns()->prj->Model_Name.toLocal8Bit().toStdString().data(),Mediator::GetIns()->MainWindowDispHd,false);
+        }catch(MException &e)
+        {
+            printf(e.what());
+        }
+    }
+    else
+    {
+        try{
+            Mediator::GetIns()->Load_Model(Preference::GetIns()->prj->Model_Name.toLocal8Bit().toStdString().data(),Mediator::GetIns()->MainWindowDispHd,false);
+        }catch(MException &e)
+        {
+            printf(e.what());
+        }
+
+        DispObj(hobj,Mediator::GetIns()->MainWindowDispHd);
+
+        try{
+            Mediator::GetIns()->Load_Dxf(Preference::GetIns()->prj->DxfPath.toLocal8Bit().toStdString().data(),Mediator::GetIns()->MainWindowDispHd,false);
+        }catch(MException &e)
+        {
+            printf(e.what());
+        }
+    }
+
+
 
     ui->Labell_Version->setText(QString::fromLocal8Bit("当前版本：") + QString(_VERSION));
-
     std::ofstream file("ver.dat");
     file << _VERSION;
     file.close();
-
-
 
     counter = PUNCH_COUNTER;
     show_counter();
@@ -241,7 +294,6 @@ void MainWindow::on_pushButton_ModelSet_clicked()
     }
 
     ModelSetDlg = new ModelSetDialog();
-
     ModelSetDlg->show();
     ModelSetDlg->exec();
 }
@@ -468,4 +520,50 @@ void MainWindow::on_pushButton_Seperate_clicked()
 void MainWindow::on_pushButton_Min_clicked()
 {
     showMinimized();
+}
+
+/*
+void MainWindow::on_pushButton_NormalSet_clicked()
+{
+    //判断是否运动状态
+    if(STOP == (Mediator::GetIns()->GetState()&STOP))
+    {
+        UpdateHistory("请停止后设置");
+        return;
+    }
+    static NormalControlDialog *ModelSetDlg  = nullptr;
+    if(nullptr != ModelSetDlg)
+    {
+        delete ModelSetDlg;
+        ModelSetDlg = nullptr;
+    }
+
+    ModelSetDlg = new NormalControlDialog();
+    ModelSetDlg->show();
+    ModelSetDlg->exec();
+}
+*/
+
+void MainWindow::on_pushButton_NormalSet_clicked()
+{
+
+    if(RUN == (Mediator::GetIns()->GetState()&RUN) ||
+       PAUSE == (Mediator::GetIns()->GetState()&PAUSE)
+       )
+    {
+        UpdateHistory("请停止后设置");
+        return;
+    }
+
+    static NormalControlDialog *ModelSetDlg  = nullptr;
+    if(nullptr != ModelSetDlg)
+    {
+        delete ModelSetDlg;
+        ModelSetDlg = nullptr;
+    }
+
+    ModelSetDlg = new NormalControlDialog();
+    ModelSetDlg->show();
+    ModelSetDlg->exec();
+     printf("show dialog");
 }

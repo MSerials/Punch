@@ -22,7 +22,10 @@
 class motion_card
 {
 public:
-        motion_card(int Method = 0) { std::cout << "init parent motion card" << std::endl;
+        int isNegLimit = 0;
+        motion_card(int Method = 0) {
+            isNegLimit = Method;
+            std::cout << "init parent motion card" << std::endl;
 }
 virtual ~motion_card() { };// std::cout << "freeing parent motion card" << std::endl; }
 
@@ -61,9 +64,11 @@ virtual ~motion_card() { };// std::cout << "freeing parent motion card" << std::
 
 	virtual void e_stop_ex(short Axis = 0) = 0;
 
+        virtual void SetLimit(short Axis, long long Pos , int sel) = 0;
+
 	virtual void SetPosLimit(short Axis = 0, long long Pos = -1000000) = 0;
 
-	virtual void SetNegLimit(short Axis = 0, long long Pos = -100000) = 0;
+        //virtual void SetNegLimit(short Axis = 0, long long Pos = -100000) = 0;
 
 	virtual void close() = 0;
 
@@ -101,15 +106,21 @@ public:
 		return false; 
 	}
 
+
+        void SetLimit(short Axis, long long Pos , int sel)
+        {
+
+        }
+
 	void SetPosLimit(short Axis, long long Pos)
 	{
 
 	}
 
-	void SetNegLimit(short Axis, long long Pos)
-	{
+        //void SetNegLimit(short Axis, long long Pos)
+        //{
 
-	}
+        //}
 
 	//override
 	int  ReadInputBit(uint32 bit = 0, int second_sel = 0) {

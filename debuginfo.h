@@ -3,9 +3,7 @@
 
 
 
-
-
-#define NO_MOTION
+//#define NO_MOTION
 
 #ifndef NO_MOTION
 #define SHOW_FULL_SCREEN

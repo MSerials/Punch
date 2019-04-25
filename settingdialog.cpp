@@ -387,7 +387,10 @@ bool SettingDialog::eventFilter(QObject* obj,QEvent *event)
             }
             else
             {
-                motion::GetIns()->CurrentCard()->SetNegLimit(X_AXIS_MOTOR, -210000000);
+                int LimitPos = -210000000;
+                if(左方向为原点)
+                    LimitPos = 210000000;
+                motion::GetIns()->CurrentCard()->SetLimit(X_AXIS_MOTOR, LimitPos,左方向为原点);
                 int origin_x_spd = X_AXIS_SPEED;
                 X_AXIS_SPEED = X_AXIS_SPEED / 3;
                 Mediator::GetIns()->MachineOp(MOVE_LEFT);
@@ -402,6 +405,10 @@ bool SettingDialog::eventFilter(QObject* obj,QEvent *event)
             }
             else
             {
+                int LimitPos = -210000000;
+                if(左方向为原点)
+                    LimitPos = 210000000;
+                motion::GetIns()->CurrentCard()->SetLimit(X_AXIS_MOTOR, LimitPos,左方向为原点);
                 int origin_x_spd = X_AXIS_SPEED;
                 X_AXIS_SPEED = X_AXIS_SPEED / 3;
                 Mediator::GetIns()->MachineOp(MOVE_RIGHT);
@@ -519,7 +526,13 @@ bool SettingDialog::eventFilter(QObject* obj,QEvent *event)
             }
             else
             {
-                motion::GetIns()->CurrentCard()->SetNegLimit(X_AXIS_MOTOR, -210000000);
+
+                int LimitPos = -210000000;
+                if(左方向为原点)
+                    LimitPos = 210000000;
+                motion::GetIns()->CurrentCard()->SetLimit(X_AXIS_MOTOR, LimitPos,左方向为原点);
+
+
                 int origin_x_spd = X_AXIS_SPEED;
                 X_AXIS_SPEED = X_AXIS_SPEED / 2;
                 Mediator::GetIns()->MachineOp(MOVE_LEFT);
@@ -534,6 +547,10 @@ bool SettingDialog::eventFilter(QObject* obj,QEvent *event)
             }
             else
             {
+                int LimitPos = -210000000;
+                if(左方向为原点)
+                    LimitPos = 210000000;
+                motion::GetIns()->CurrentCard()->SetLimit(X_AXIS_MOTOR, LimitPos,左方向为原点);
                 int origin_x_spd = X_AXIS_SPEED;
                 X_AXIS_SPEED = X_AXIS_SPEED / 2;
                 Mediator::GetIns()->MachineOp(MOVE_RIGHT);
@@ -660,7 +677,9 @@ bool SettingDialog::eventFilter(QObject* obj,QEvent *event)
                         break;
                 }
                 X_AXIS_LIMIT = motion::GetIns()->CurrentCard()->ReadInputBit(YANWEI_AXIS_CMD_POS);
-                motion::GetIns()->CurrentCard()->SetNegLimit(X_AXIS_MOTOR, X_AXIS_LIMIT);
+                motion::GetIns()->CurrentCard()->SetLimit(X_AXIS_MOTOR, X_AXIS_LIMIT,左方向为原点);
+
+
                 ui->lineEdit_XLimit->setText(QString::number(X_AXIS_LIMIT));
                 Preference::GetIns()->prj->WriteSettings();
             }

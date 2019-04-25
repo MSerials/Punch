@@ -29,7 +29,8 @@ SOURCES += \
     settingdialog.cpp \
     modelsetdialog.cpp \
     mediator.cpp \
-    cryptdialog.cpp
+    cryptdialog.cpp \
+    normalcontroldialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -43,13 +44,16 @@ HEADERS += \
     MSerialsCV.h \
     common.h \
     preferences.h \
-    cryptdialog.h
+    cryptdialog.h \
+    normalcontroldialog.h \
+    mdxf.h
 
 FORMS += \
         mainwindow.ui \
     settingdialog.ui \
     modelsetdialog.ui \
-    cryptdialog.ui
+    cryptdialog.ui \
+    normalcontroldialog.ui
 
 
 INCLUDEPATH +=  ../third_party/opencv4.0.1/include \
@@ -59,13 +63,11 @@ INCLUDEPATH +=  ../third_party/opencv4.0.1/include \
 
 INCLUDEPATH += /include/
 
-#LIBS += -L../third_party/opencv3.4.0/x64/vc14/lib -lopencv_world340
 
 #使用openmp进行并且处理
 QMAKE_CXXFLAGS+=/openmp
 
-CONFIG += console
+#CONFIG += console
 
 RC_FILE += app.rc
-#DISTFILES += \
-#    app.rc
+
