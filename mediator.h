@@ -250,14 +250,22 @@ public:
                 CV_Assert(!InputArray.empty());
                 CV_Assert(InputArray.type() == CV_8UC1);
                 cv::Mat InputArray2;
+
                 int sized = static_cast<int>(Ctrl_Var.margin_to_model);
-                cv::threshold(InputArray,Cal_Image,Ctrl_Var.image_threshold,255,CV_THRESH_BINARY);
+
+
+                cv::threshold(InputArray,InputArray2,Ctrl_Var.image_threshold,255,CV_THRESH_BINARY);
+
                 CvCvtColor(InputArray,Show_Image,CV_GRAY2BGR);
-               Ctrl_Var.Tale_Pix   =   0;
-               std::vector<std::vector<cv::Point>>  Contours= ModelContours;
+
+                Ctrl_Var.Tale_Pix   =   0;
+
+                std::vector<std::vector<cv::Point>>  Contours= ModelContours;
                 //注意备注,在确认计算前找到对应的点
+
                 std::list<std::vector<cv::Point>> ImagePoints;
                 Ctrl_Var.Tale_ModelsPostion.clear();
+
                 for (auto &vector_points : Ctrl_Var.ModelsPostion)
                 {
                     std::vector<cv::Point> tmp;
@@ -269,6 +277,21 @@ public:
                     }
                     Ctrl_Var.Tale_ModelsPostion.push_back(tmp);
                 }
+
+//必须再绘制上次点之前进行腐蚀
+                if (sized > 0)
+                {
+                    cv::Size si(sized, sized);
+                    cv::Mat er, get_Struct = cv::getStructuringElement(cv::MORPH_RECT, si);
+                    cv::dilate(InputArray2, er, get_Struct);
+                    Cal_Image = er.clone();
+                }
+                else
+                {
+                    Cal_Image = InputArray2.clone();
+                }
+
+
                 //可以优化，优化应该在确定正反面做法后
                 DrawPts(Cal_Image, Ctrl_Var, true);
 #ifdef NO_MOTION
@@ -285,23 +308,7 @@ public:
                     ImagePoints =  CvGeAllPointsHorizental(Cal_Image, Contours, Ctrl_Var);
                     break;
                 case LINES_VERTICAL_AI:
-
-
-
-                    if (sized > 0)
-                    {
-                        cv::Size si(sized, sized);
-                        cv::Mat er, get_Struct = cv::getStructuringElement(cv::MORPH_RECT, si);
-                        cv::dilate(Cal_Image, er, get_Struct);
-                        InputArray2 = er.clone();
-                    }
-                    else
-                    {
-                        InputArray2 = Cal_Image.clone();
-                    }
-
-
-                    ImagePoints =  CvGeAllPointsCircleVerticalAI(InputArray2, Contours, Ctrl_Var);
+                    ImagePoints =  CvGeAllPointsCircleVerticalAI(Cal_Image, Contours, Ctrl_Var);
                     break;
                 case LINES_VERTICAL:
                     ImagePoints =  CvGeAllPointsCircleVertical(Cal_Image, Contours, Ctrl_Var);
